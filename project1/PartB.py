@@ -1,4 +1,6 @@
+# PartB.py
+# CS121 Winter 2021 Project 1
+# Name: Keyu Zhang
+# ID: 19898090
+# UCINetID: keyuz4
 
-
-if __name__ == '__main__':
-    print('abc')
