@@ -4,6 +4,7 @@
 # ID: 19898090
 # UCINetID: keyuz4
 
+
 ############################################################################
 ##  PART A: Word Frequencies:                                             ##
 ##   Description:                                                         ##
@@ -15,27 +16,33 @@
 ##   Source: https://canvas.eee.uci.edu/courses/32171/assignments/623046  ##
 ##   (Header Uploaded by Will Schallock, last updated 1/5/21)             ##
 ############################################################################
-from pathlib import Path
+
 import sys
 from collections import defaultdict
+from pathlib import Path
+
 
 class WordFrequencies:
-    def tokenize(self, TextFilePath: Path) -> ['token']:
+    def tokenize(self, TextFilePath: str) -> ['token']:
         """reads in a text file and returns a list of the tokens in that file.
         a token is a sequence of alphanumeric characters independent of capitalization"""
         tokens = []
         word = ''
-        with open(TextFilePath, encoding='utf8') as f:
+        with open(Path(TextFilePath), encoding='utf8') as f:
             while True:
+                # read one char at a time to save memory
                 char = f.read(1)
-                if not char:  # end of file
-                    break
-                # print(char, end=' ')
-                if char.isalpha() or char.isdecimal():
+
+                if char.isalpha() or char.isdecimal():  # accepted char for token
                     word += char.lower()  # tokens are lower case only
                 elif word != '':
+                    # this branch will only be triggered at the end of a token,
+                    # avoid adding empty string to list of tokens when there's multiple non-alphanumeric chars in a row
                     tokens.append(word)
                     word = ''
+                    
+                if not char:  # end of file
+                    break
         return tokens
 
     def computeWordFrequencies(self, tokens: ['token']) -> {'token': int}:
@@ -54,16 +61,7 @@ class WordFrequencies:
 
 
 if __name__ == '__main__':
-    # input_dict = {
-    #     'in': 2, 'live': 2,
-    #     'fact': 1, 'fun': 1, 'here': 1, 'india': 1, 'mostly': 2, 'a': 1, 'africa': 1,
-    # }
-    # a = WordFrequencies()
-    # a.print(input_dict)
-    # print(sys.argv)
-    file_path = Path(sys.argv[1])
-    # print(file_path, type(file_path))
-    a = WordFrequencies()
-    a.tokenize(file_path)
-    pass
-
+    wf = WordFrequencies()
+    tokens = wf.tokenize(sys.argv[1])
+    occurrences = wf.computeWordFrequencies(tokens)
+    wf.print(occurrences)
