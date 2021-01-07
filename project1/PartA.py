@@ -3,10 +3,21 @@
 # Name: Keyu Zhang
 # ID: 19898090
 # UCINetID: keyuz4
+
+############################################################################
+##  PART A: Word Frequencies:                                             ##
+##   Description:                                                         ##
+##      Run on command line using command:                                ##
+##          python PartA.py [filename]                                    ##
+##   Input: [filename] - the path to a txt file                           ##
+##   Output: prints tokens and frequencies                                ##
+##                                                                        ##
+##   Source: https://canvas.eee.uci.edu/courses/32171/assignments/623046  ##
+##   (Header Uploaded by Will Schallock, last updated 1/5/21)             ##
+############################################################################
 from pathlib import Path
 import sys
 from collections import defaultdict
-
 
 class WordFrequencies:
     def tokenize(self, TextFilePath: str or Path) -> ['token']:
@@ -36,3 +47,8 @@ if __name__ == '__main__':
     }
     a = WordFrequencies()
     a.print(input_dict)
+    print(sys.argv)
+    file_path = Path(sys.argv[1])
+    print(file_path, type(file_path))
+    pass
+
