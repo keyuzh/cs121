@@ -23,27 +23,20 @@ class WordFrequencies:
     def tokenize(self, TextFilePath: Path) -> ['token']:
         """reads in a text file and returns a list of the tokens in that file.
         a token is a sequence of alphanumeric characters independent of capitalization"""
-        text = TextFilePath.read_text(encoding='utf8')
-
         tokens = []
-        iterator = iter(text)
         word = ''
-        try:
+        with open(TextFilePath, encoding='utf8') as f:
             while True:
-                char = next(iterator)
-                print(char)
+                char = f.read(1)
+                if not char:  # end of file
+                    break
+                # print(char, end=' ')
                 if char.isalpha() or char.isdecimal():
                     word += char.lower()  # tokens are lower case only
                 elif word != '':
                     tokens.append(word)
                     word = ''
-
-
-        except StopIteration:
-            pass
-
-
-        pass
+        return tokens
 
     def computeWordFrequencies(self, tokens: ['token']) -> {'token': int}:
         """counts the number of occurrences of each token in the token list,
