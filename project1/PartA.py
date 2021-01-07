@@ -20,9 +20,29 @@ import sys
 from collections import defaultdict
 
 class WordFrequencies:
-    def tokenize(self, TextFilePath: str or Path) -> ['token']:
+    def tokenize(self, TextFilePath: Path) -> ['token']:
         """reads in a text file and returns a list of the tokens in that file.
         a token is a sequence of alphanumeric characters independent of capitalization"""
+        text = TextFilePath.read_text(encoding='utf8')
+
+        tokens = []
+        iterator = iter(text)
+        word = ''
+        try:
+            while True:
+                char = next(iterator)
+                print(char)
+                if char.isalpha() or char.isdecimal():
+                    word += char.lower()  # tokens are lower case only
+                elif word != '':
+                    tokens.append(word)
+                    word = ''
+
+
+        except StopIteration:
+            pass
+
+
         pass
 
     def computeWordFrequencies(self, tokens: ['token']) -> {'token': int}:
@@ -41,14 +61,16 @@ class WordFrequencies:
 
 
 if __name__ == '__main__':
-    input_dict = {
-        'in': 2, 'live': 2,
-        'fact': 1, 'fun': 1, 'here': 1, 'india': 1, 'mostly': 2, 'a': 1, 'africa': 1,
-    }
-    a = WordFrequencies()
-    a.print(input_dict)
-    print(sys.argv)
+    # input_dict = {
+    #     'in': 2, 'live': 2,
+    #     'fact': 1, 'fun': 1, 'here': 1, 'india': 1, 'mostly': 2, 'a': 1, 'africa': 1,
+    # }
+    # a = WordFrequencies()
+    # a.print(input_dict)
+    # print(sys.argv)
     file_path = Path(sys.argv[1])
-    print(file_path, type(file_path))
+    # print(file_path, type(file_path))
+    a = WordFrequencies()
+    a.tokenize(file_path)
     pass
 
