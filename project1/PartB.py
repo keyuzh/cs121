@@ -16,10 +16,32 @@
 ##   (Header Uploaded by Will Schallock, last updated 1/5/21)             ##
 ############################################################################
 
-# TODO: *optional* import classes/methods/functions from PartA you want to reuse in PartB
+import sys
 
-# TODO: write classes/methods/functions for PartB here
+from PartA import WordFrequencies
+
+
+def token_intersection(token1: ['tokens'], token2: ['tokens']) -> int:
+    """
+    :argument: two lists of tokens
+    :returns: number of tokens the two lists have in common
+
+    complexity: O(N) time
+        construction of two sets: O(len(token1)) + O(len(token2))
+        intersection of two sets: O(len(set1) + len(set2))
+        finding the length of set: O(1)
+        simplify:
+            O(len(token1)) + O(len(token2)) + O(len(set1) + len(set2)) + O(1)
+            -> O(4N + 1)
+            -> O(N)
+    """
+    return len(set(token1) & set(token2))
+
 
 if __name__ == "__main__":
-    # TODO: call functions/ initalize class object/ call methods for PART B here
-    pass  # TODO: delete this line (once you add code)
+    file1 = sys.argv[1]
+    file2 = sys.argv[2]
+    wf = WordFrequencies()
+    token1 = wf.tokenize(file1)
+    token2 = wf.tokenize(file2)
+    print(token_intersection(token1, token2))
