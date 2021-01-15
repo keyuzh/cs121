@@ -4,7 +4,6 @@
 # ID: 19898090
 # UCINetID: keyuz4
 
-
 ############################################################################
 ##  PART A: Word Frequencies:                                             ##
 ##   Description:                                                         ##
@@ -18,8 +17,8 @@
 ############################################################################
 
 import sys
-from collections import defaultdict
 from pathlib import Path
+import string
 
 
 class WordFrequencies:
@@ -43,8 +42,10 @@ class WordFrequencies:
                 # read one char at a time to save memory
                 char = f.read(1)
 
-                if char.isalpha() or char.isdecimal():  # accepted char for token
+                if char in string.ascii_uppercase:
                     word += char.lower()  # tokens are lower case only
+                elif (char in string.ascii_lowercase) or (char in string.digits):  # accepted char for token
+                    word += char
                 elif word != '':
                     # this branch will only be triggered at the end of a token,
                     # avoid adding empty string to list of tokens when there's multiple non-alphanumeric chars in a row
@@ -57,18 +58,17 @@ class WordFrequencies:
 
     def computeWordFrequencies(self, tokens: ['token']) -> {'token': int}:
         """
-        counts the number of occurrences of each token in the token list
+        counts the number of occurrences of each token in the token list,
+        returns a dict containing the count of each token
         :argument: list of lower case string 'tokens'
         :returns: dict where the keys are str tokens and the values are int number of occurrences
         :complexity: O(n) time
             iterate through entire list of tokens, O(n)
         """
-        # frequencies = defaultdict(int)
         frequencies = dict()
         for token in tokens:
-            # if the key is not in dict, defaultdict initiates the value at 0
+            # if the key is not in dict, dict.setdefault method initiates the value at 0
             frequencies[token] = frequencies.setdefault(token, 0) + 1
-            # frequencies[token] += 1
         return frequencies
 
     def print(self, frequencies: {'token': int}) -> None:
@@ -77,7 +77,7 @@ class WordFrequencies:
         ties are sorted alphabetically and in ascending order.
         :argument: dict where the keys are str tokens and the values are int number of occurrences
         :returns: None
-        :complexity: O(n log n) time due to sorting
+        :complexity: O(n log n) time due to sorting; O(n) excluding sort
             sorting the keys in dict takes O(n log n) time
             then iterate through the sorted key-value pairs, O(n)
             simplify:
@@ -89,6 +89,10 @@ class WordFrequencies:
 
 
 def main():
+    """
+    given path to a text file from terminal; tokenize the text in the file and
+    :return:
+    """
     wf = WordFrequencies()
     tokens = wf.tokenize(sys.argv[1])
     occurrences = wf.computeWordFrequencies(tokens)
