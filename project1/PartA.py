@@ -16,9 +16,9 @@
 ##   (Header Uploaded by Will Schallock, last updated 1/5/21)             ##
 ############################################################################
 
+import string
 import sys
 from pathlib import Path
-import string
 
 
 class WordFrequencies:
@@ -41,7 +41,6 @@ class WordFrequencies:
             while True:
                 # read one char at a time to save memory
                 char = f.read(1)
-
                 if char in string.ascii_uppercase:
                     word += char.lower()  # tokens are lower case only
                 elif (char in string.ascii_lowercase) or (char in string.digits):  # accepted char for token
@@ -51,7 +50,6 @@ class WordFrequencies:
                     # avoid adding empty string to list of tokens when there's multiple non-alphanumeric chars in a row
                     tokens.append(word)
                     word = ''
-                    
                 if not char:  # end of file
                     break
         return tokens
@@ -84,14 +82,18 @@ class WordFrequencies:
                 O(n log n) + O(n)
                 -> O(n log n)
         """
-        for k, v in sorted(frequencies.items(), key=lambda x: (-x[1], x[0])):
+        for k, v in sorted(frequencies.items(),
+                           # sort first by value in decreasing order, then by key in alphabetical order
+                           key=lambda x: (-x[1], x[0])):
             print(k, '\t', v, sep='')
 
 
 def main():
     """
-    given path to a text file from terminal; tokenize the text in the file and
-    :return:
+    given path to a text file from terminal; tokenize the text in the file, count the number of tokens,
+    and print tokens and its count in sorted order into the terminal
+    :return: None
+    :complexity: O(n log n) including sort; O(n) excluding sort
     """
     wf = WordFrequencies()
     tokens = wf.tokenize(sys.argv[1])

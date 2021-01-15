@@ -17,17 +17,18 @@
 ############################################################################
 
 import sys
+
 from PartA import WordFrequencies
 
 
 def token_intersection(token1: ['tokens'], token2: ['tokens']) -> int:
     """
-    :argument: two lists of tokens
+    given two list of tokens, find the number of common words (intersection) between them
+    :parameter: two lists of tokens
     :returns: number of tokens the two lists have in common
-
-    complexity: O(n) time
-        construction of two sets: O(len(token1)) + O(len(token2))
-        intersection of two sets: O(len(set1) + len(set2))
+    :complexity: O(n) time
+        construction of two sets: O(len(token1)) + O(len(token2)) -> O(n) + O(n)
+        intersection of two sets: O(len(set1) + len(set2)) -> O(n) + O(n)
         finding the length of set: O(1)
         simplify:
             O(len(token1)) + O(len(token2)) + O(len(set1) + len(set2)) + O(1)
@@ -38,6 +39,11 @@ def token_intersection(token1: ['tokens'], token2: ['tokens']) -> int:
 
 
 def main():
+    """
+    given path to 2 text files from terminal; tokenize both files, and find the number of intersecting words
+    between the 2 token lists, print the number on the terminal
+    :return: None
+    """
     file1 = sys.argv[1]
     file2 = sys.argv[2]
     wf = WordFrequencies()
