@@ -1,6 +1,7 @@
 import logging
 import re
 from urllib.parse import urlparse
+from lxml import html
 
 logger = logging.getLogger(__name__)
 
@@ -40,6 +41,16 @@ class Crawler:
         Suggested library: lxml
         """
         outputLinks = []
+
+        html_string = url_data['content'].decode('utf8')
+        string_document = html.fromstring(html_string)
+
+        link = list(string_document.iterlinks())
+
+        print("Length of the link : ", len(link))
+
+        outputLinks = [x[2] for x in link]
+
         return outputLinks
 
     def is_valid(self, url):
