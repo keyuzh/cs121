@@ -49,11 +49,16 @@ class Crawler:
 
         string_document = html.fromstring(html_string)
 
-        link = list(string_document.iterlinks())
+        links = list(string_document.iterlinks())
 
-        print("Length of the link : ", len(link))
+        print("Length of the link : ", len(links))
 
-        outputLinks = [x[2] for x in link]
+        outputLinks = [x[2] for x in links]
+
+        # TODO: convert relative link to absolute link
+        for i, link in enumerate(outputLinks):
+            if link.startswith("/"):
+                outputLinks[i] = url_data['url'] + link[1:]
 
         return outputLinks
 
