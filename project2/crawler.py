@@ -42,7 +42,11 @@ class Crawler:
         """
         outputLinks = []
 
-        html_string = url_data['content'].decode('utf8')
+        if type(url_data['content']) is bytes:
+            html_string = url_data['content'].decode('utf8')
+        else:
+            html_string = url_data['content']
+
         string_document = html.fromstring(html_string)
 
         link = list(string_document.iterlinks())
