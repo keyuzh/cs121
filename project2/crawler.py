@@ -16,6 +16,8 @@ class Crawler:
     def __init__(self, frontier, corpus):
         self.frontier = frontier
         self.corpus = corpus
+        self.crawlHistory = {} #Dictionary to story crawl history
+        self.traps = [] #list that story all the known traps url
 
     def start_crawling(self):
         """
@@ -87,9 +89,29 @@ class Crawler:
         filter out crawler traps. Duplicated urls will be taken care of by frontier. You don't need to check for duplication
         in this method
         """
+        #https://docs.python.org/3/library/urllib.parse.html
+        #parsed.scheme = URL specifier
+        #parsed.netloc = NetWork location Ex: www.uci.edu
+        #parsed.path = path
+        #parsed.params = parameter for last path element
+        #parsed.query = query component
         parsed = urlparse(url)
         if parsed.scheme not in set(["http", "https"]):
             return False
+        if len(url)>1000: #Long url --> traps
+            return False
+        tempUrl = parsed.netloc+parsed.path #create new string with the domain + path
+        if tempUrl in self.traps:
+            return False #url is a known traps
+        if tempUrl not in self.crawlHistory:
+            self.crawlHistory[tempUrl] = 1 #never browsed, append to dict and set browse time to 1
+            return True
+        else:
+            self.crawlHistory[tempUrl] +=1 #increase the browse time        
+            if self.crawlHistory[tempUrl] >10: #browse same path over 10 times --> trap, loop
+                self.traps.append(tempUrl) #store in the list so that we can save the run time next time
+                return False
+
         try:
             return ".ics.uci.edu" in parsed.hostname \
                    and not re.match(".*\.(css|js|bmp|gif|jpe?g|ico" + "|png|tiff?|mid|mp2|mp3|mp4" \
@@ -97,6 +119,7 @@ class Crawler:
                                     + "|ps|eps|tex|ppt|pptx|doc|docx|xls|xlsx|names|data|dat|exe|bz2|tar|msi|bin|7z|psd|dmg|iso|epub|dll|cnf|tgz|sha1" \
                                     + "|thmx|mso|arff|rtf|jar|csv" \
                                     + "|rm|smil|wmv|swf|wma|zip|rar|gz|pdf)$", parsed.path.lower())
+
 
         except TypeError:
             print("TypeError for ", parsed)
