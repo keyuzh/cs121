@@ -41,25 +41,27 @@ class Crawler:
         Suggested library: lxml
         """
         outputLinks = []
+        # print(f"parsing: {url_data['url']}")
+        # print(f"response code: {url_data['http_code']}")
+        # print(f"type: {url_data['content_type']}")
 
-        if type(url_data['content']) is bytes:
-            html_string = url_data['content'].decode('utf8')
-        else:
-            html_string = url_data['content']
+        # only parse page if html loaded successfully
+        if url_data['http_code'] != 200:
+            return []
+        # don't parse non-html pages
+        if (url_data['content_type'] is None) or not (url_data['content_type'].startswith(r"b'text/html")):
+            return []
 
-        string_document = html.fromstring(html_string)
-
+        # html.fronstring can take both str and bytes object
+        string_document = html.fromstring(url_data['content'])
+        # convert links to absolute link
+        string_document.make_links_absolute(url_data['url'])
+        # .iterlinks yields(element, attribute, link, pos) for every link in the document.
         links = list(string_document.iterlinks())
+        # print("Length of the link : ", len(links))
 
-        print("Length of the link : ", len(links))
-
-        outputLinks = [x[2] for x in links]
-
-        # TODO: convert relative link to absolute link
-        for i, link in enumerate(outputLinks):
-            if link.startswith("/"):
-                outputLinks[i] = url_data['url'] + link[1:]
-
+        # only want link to other websites, add to final list only if 'href'
+        outputLinks = [x[2] for x in links if x[1] == 'href']
         return outputLinks
 
     def is_valid(self, url):
