@@ -2,8 +2,10 @@ import logging
 import re
 from urllib.parse import urlparse
 from lxml import html
+from lxml import etree
 
 logger = logging.getLogger(__name__)
+
 
 class Crawler:
     """
@@ -22,7 +24,8 @@ class Crawler:
         """
         while self.frontier.has_next_url():
             url = self.frontier.get_next_url()
-            logger.info("Fetching URL %s ... Fetched: %s, Queue size: %s", url, self.frontier.fetched, len(self.frontier))
+            logger.info("Fetching URL %s ... Fetched: %s, Queue size: %s", url, self.frontier.fetched,
+                        len(self.frontier))
             url_data = self.corpus.fetch_url(url)
 
             for next_link in self.extract_next_links(url_data):
@@ -44,23 +47,37 @@ class Crawler:
         # print(f"parsing: {url_data['url']}")
         # print(f"response code: {url_data['http_code']}")
         # print(f"type: {url_data['content_type']}")
-
-        # only parse page if html loaded successfully
-        if url_data['http_code'] != 200:
+        # if (
+        #         # page must be valid (http 200)
+        #         url_data['http_code'] != 200
+        #         # content must be html and in utf-8 encoding (I dont know why url_data['content_type'] is a str
+        #         # representing a bytes object, but anyways, it is what it is)
+        #         or url_data['content_type'] != "b'text/html; charset=UTF-8'"
+        #         # content must exist in corpus
+        #         or url_data['content'] is None
+        # ):
+        #     return []
+        try:
+            # html.fromstring can take both str and bytes object; but str can be dangerous and sometimes
+            # raise unicode encoding exception, so we want to convert str to bytes
+            if isinstance(url_data['content'], str):
+                url_data['content'] = bytes(url_data['content'], encoding='utf8')
+            string_document = html.fromstring(url_data['content'])
+        except etree.ParserError:
+            # html.fromstring() raises this exception when the content is invalid
+            # e.g. http code is not 200; content encoding is not utf-8 and cannot decode;
+            #      content does not exist in corpus and therefore url_data['content'] is None;
             return []
-        # don't parse non-html pages
-        if (url_data['content_type'] is None) or not (url_data['content_type'].startswith(r"b'text/html")):
-            return []
-
-        # html.fronstring can take both str and bytes object
-        string_document = html.fromstring(url_data['content'])
+        except Exception as e:
+            print(e)
+            raise
         # convert links to absolute link
         string_document.make_links_absolute(url_data['url'])
         # .iterlinks yields(element, attribute, link, pos) for every link in the document.
         links = list(string_document.iterlinks())
         # print("Length of the link : ", len(links))
 
-        # only want link to other websites, add to final list only if 'href'
+        # only want link to other websites (not images, etc.), add to final list only if 'href'
         outputLinks = [x[2] for x in links if x[1] == 'href']
         return outputLinks
 
@@ -84,4 +101,3 @@ class Crawler:
         except TypeError:
             print("TypeError for ", parsed)
             return False
-
