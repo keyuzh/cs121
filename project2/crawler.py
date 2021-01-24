@@ -59,6 +59,10 @@ class Crawler:
         #         or url_data['content'] is None
         # ):
         #     return []
+
+        # use redirected url if possible
+        if url_data['is_redirected'] and url_data['url'] != url_data['final_url']:
+            url_data['url'] = url_data['final_url']
         try:
             # html.fromstring can take both str and bytes object; but str can be dangerous and sometimes
             # raise unicode encoding exception, so we want to convert str to bytes
@@ -98,7 +102,7 @@ class Crawler:
         parsed = urlparse(url)
         if parsed.scheme not in set(["http", "https"]):
             return False
-        if len(url)>1000: #Long url --> traps
+        if len(url) > 300: #Long url --> traps
             return False
         tempUrl = parsed.netloc+parsed.path #create new string with the domain + path
         if tempUrl in self.traps:
