@@ -6,6 +6,7 @@ import sys
 from corpus import Corpus
 from crawler import Crawler
 from frontier import Frontier
+from analytics import Analytics
 
 if __name__ == "__main__":
     # Configures basic logging
@@ -23,5 +24,8 @@ if __name__ == "__main__":
     atexit.register(frontier.save_frontier)
 
     # Instantiates a crawler object and starts crawling
-    crawler = Crawler(frontier, corpus)
+    analytics = Analytics()
+    # register our analytics function
+    atexit.register(analytics.write_all)
+    crawler = Crawler(frontier, corpus, analytics)
     crawler.start_crawling()

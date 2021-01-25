@@ -18,13 +18,14 @@ class Analytics:
     def write_crawl_history(self):
     #
         with open("crawl_history.txt", "w") as f:
-            for key, value in self.crawlerHistory.items():
+            for key, value in self.crawlHistory.items():
                 f.write(f"{key:<30}{value:>10}\n")
 
     def write_most_valid_page(self):
         #
         with open("most_valid_page.txt", "w") as f:
-            f.write(self.most_valid_page)
+            if self.most_valid_page:
+                f.write(self.most_valid_page)
 
     def write_url_traps(self):
         #
@@ -36,5 +37,8 @@ class Analytics:
             f.write("\nTraps:\n")
             for item in self.traps:
                 f.write(item + "\n")
-                
-            
+
+    def write_all(self):
+        self.write_crawl_history()
+        self.write_most_valid_page()
+        self.write_url_traps()

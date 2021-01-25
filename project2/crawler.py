@@ -1,8 +1,8 @@
 import logging
 import re
 from urllib.parse import urlparse
-from lxml import html
-from lxml import etree
+
+from lxml import etree, html
 
 logger = logging.getLogger(__name__)
 
@@ -13,7 +13,7 @@ class Crawler:
     the frontier
     """
 
-    def __init__(self, frontier, corpus,analytics):
+    def __init__(self, frontier, corpus, analytics):
     
         self.frontier = frontier
         self.corpus = corpus
