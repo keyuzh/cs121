@@ -12,8 +12,12 @@ class Analytics:
 
         self.crawlHistory = {} #Dictionary to story crawl history
         self.traps = [] #list that story all the known traps url
-        self.most_valid_links = 0 #
-        self.most_valid_page = None #
+        self.most_valid_links = 0
+        self.most_valid_page = None
+
+    def _write(self, file: open, line: str):
+        # use this method to write to file so you can forget \n
+        file.write(line + '\n')
 
     def write_crawl_history(self):
     #
@@ -24,21 +28,28 @@ class Analytics:
     def write_most_valid_page(self):
         #
         with open("most_valid_page.txt", "w") as f:
-            if self.most_valid_page:
-                f.write(self.most_valid_page)
+            self._write(f, "Page with the most valid out links:")
+            self._write(f, str(self.most_valid_page))
+            self._write(f, "Number of out links:")
+            self._write(f, str(self.most_valid_links))
 
     def write_url_traps(self):
         #
         with open("url_and_traps.txt", "w") as f:
             f.write("url:\n")
             for key in self.crawlHistory.keys():
-                f.write(key + "\n")
+                f.write("  " + key + "\n")
 
             f.write("\nTraps:\n")
             for item in self.traps:
-                f.write(item + "\n")
+                f.write("  " + item + "\n")
 
     def write_all(self):
         self.write_crawl_history()
         self.write_most_valid_page()
         self.write_url_traps()
+
+    def update_most_valid_links(self, url: str, count: int):
+        if count > self.most_valid_links:
+            self.most_valid_links = count
+            self.most_valid_page = url

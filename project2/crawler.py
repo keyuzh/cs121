@@ -34,16 +34,13 @@ class Crawler:
                         len(self.frontier))
             url_data = self.corpus.fetch_url(url)
 
-            current_count = 0#
+            current_count = 0  # count the number of valid out links
             for next_link in self.extract_next_links(url_data):
                 if self.is_valid(next_link):
-                    current_count += 1#
+                    current_count += 1
                     if self.corpus.get_file_name(next_link) is not None:
                         self.frontier.add_url(next_link)
-            if current_count > self.analytics.most_valid_links:
-                self.analytics.most_valid_links = current_count#
-                self.analytics.most_valid_page = url
-                
+            self.analytics.update_most_valid_links(url, current_count)
 
     def extract_next_links(self, url_data):
         """
@@ -72,6 +69,9 @@ class Crawler:
         # use redirected url if possible
         if url_data['is_redirected'] and url_data['url'] != url_data['final_url']:
             url_data['url'] = url_data['final_url']
+        # no content (404, etc.)
+        if url_data['content'] is None:
+            return []
         try:
             # html.fromstring can take both str and bytes object; but str can be dangerous and sometimes
             # raise unicode encoding exception, so we want to convert str to bytes
@@ -90,7 +90,6 @@ class Crawler:
         string_document.make_links_absolute(url_data['url'])
         # .iterlinks yields(element, attribute, link, pos) for every link in the document.
         links = list(string_document.iterlinks())
-        # print("Length of the link : ", len(links))
 
         # only want link to other websites (not images, etc.), add to final list only if 'href'
         outputLinks = [x[2] for x in links if x[1] == 'href']
