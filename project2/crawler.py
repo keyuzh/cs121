@@ -13,11 +13,15 @@ class Crawler:
     the frontier
     """
 
-    def __init__(self, frontier, corpus):
+    def __init__(self, frontier, corpus,analytics):
+    
         self.frontier = frontier
         self.corpus = corpus
-        self.crawlHistory = {} #Dictionary to story crawl history
-        self.traps = [] #list that story all the known traps url
+        self.analytics = analytics 
+        #self.crawlHistory = {} #Dictionary to story crawl history
+        #self.traps = [] #list that story all the known traps url
+        #self.most_valid_links = 0 #
+        #self.most_valid_page = None # 
 
     def start_crawling(self):
         """
@@ -30,10 +34,16 @@ class Crawler:
                         len(self.frontier))
             url_data = self.corpus.fetch_url(url)
 
+            current_count = 0#
             for next_link in self.extract_next_links(url_data):
                 if self.is_valid(next_link):
+                    current_count += 1#
                     if self.corpus.get_file_name(next_link) is not None:
                         self.frontier.add_url(next_link)
+            if current_count > self.analytics.most_valid_links:
+                self.analytics.most_valid_links = current_count#
+                self.analytics.most_valid_page = url
+                
 
     def extract_next_links(self, url_data):
         """
@@ -42,7 +52,6 @@ class Crawler:
         list of urls in their absolute form (some links in the content are relative and needs to be converted to the
         absolute form). Validation of links is done later via is_valid method. It is not required to remove duplicates
         that have already been fetched. The frontier takes care of that.
-
         Suggested library: lxml
         """
         outputLinks = []
@@ -105,16 +114,16 @@ class Crawler:
         if len(url) > 300: #Long url --> traps
             return False
         tempUrl = parsed.netloc+parsed.path #create new string with the domain + path
-        if tempUrl in self.traps:
+        if tempUrl in self.analytics.traps:#
             return False #url is a known traps
         # if tempUrl not in self.crawlHistory:
         #     self.crawlHistory[tempUrl] = 1 #never browsed, append to dict and set browse time to 1
         #     return True
         # else:
         #     self.crawlHistory[tempUrl] +=1 #increase the browse time
-        self.crawlHistory[tempUrl] = self.crawlHistory.setdefault(tempUrl, 0) + 1
-        if self.crawlHistory[tempUrl] >10: #browse same path over 10 times --> trap, loop
-            self.traps.append(tempUrl) #store in the list so that we can save the run time next time
+        self.analytics.crawlHistory[tempUrl] = self.analytics.crawlHistory.setdefault(tempUrl, 0) + 1
+        if self.analytics.crawlHistory[tempUrl] >10:# #browse same path over 10 times --> trap, loop
+            self.analytics.traps.append(tempUrl)# #store in the list so that we can save the run time next time
             return False
 
         try:
@@ -129,3 +138,13 @@ class Crawler:
         except TypeError:
             print("TypeError for ", parsed)
             return False
+
+
+
+
+
+
+
+
+
+    
