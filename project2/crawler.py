@@ -117,15 +117,16 @@ class Crawler:
         tempUrl = parsed.netloc+parsed.path #create new string with the domain + path
         if tempUrl in self.analytics.traps:#
             return False #url is a known traps
-        # if tempUrl not in self.crawlHistory:
-        #     self.crawlHistory[tempUrl] = 1 #never browsed, append to dict and set browse time to 1
-        #     return True
-        # else:
-        #     self.crawlHistory[tempUrl] +=1 #increase the browse time
-        self.analytics.crawlHistory[tempUrl] = self.analytics.crawlHistory.setdefault(tempUrl, 0) + 1
-        if self.analytics.crawlHistory[tempUrl] >10:# #browse same path over 10 times --> trap, loop
-            self.analytics.traps.append(tempUrl)# #store in the list so that we can save the run time next time
+        if tempUrl in self.analytics.crawlHistory:
+            # already crawled this page. It may or may not be a trap, but we dont want to crawl the same page multiple
+            # times so return false here to not crawl again
+            self.analytics.crawlHistory[tempUrl] += 1
+            # if we see this page too many times, identify it as trap
+            if self.analytics.crawlHistory[tempUrl] > 10:  # #browse same path over 10 times --> trap, loop
+                self.analytics.traps.append(tempUrl)  # #store in the list so that we can save the run time next time
             return False
+        # never seen this page, check validity with provided regex
+        self.analytics.crawlHistory[tempUrl] = 1
 
         try:
             return ".ics.uci.edu" in parsed.hostname \
