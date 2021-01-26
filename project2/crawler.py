@@ -89,13 +89,11 @@ class Crawler:
         # convert links to absolute link
         string_document.make_links_absolute(url_data['url'])
         # .iterlinks yields(element, attribute, link, pos) for every link in the document.
-        links = list(string_document.iterlinks())
-
         # only want link to other websites (not images, etc.), add to final list only if 'href'
-        outputLinks = [x[2] for x in links if x[1] == 'href']
+        outputLinks = [x[2] for x in string_document.iterlinks() if x[1] == 'href']
 
         # analytics: extract text from html and pass to analytics
-        self.analytics.count_words(url_data['url'], string_document.text_content())
+        self.analytics.count_words(url_data['url'], string_document)
 
         return outputLinks
 
@@ -135,7 +133,7 @@ class Crawler:
                                     + "|wav|avi|mov|mpeg|ram|m4v|mkv|ogg|ogv|pdf" \
                                     + "|ps|eps|tex|ppt|pptx|doc|docx|xls|xlsx|names|data|dat|exe|bz2|tar|msi|bin|7z|psd|dmg|iso|epub|dll|cnf|tgz|sha1" \
                                     + "|thmx|mso|arff|rtf|jar|csv" \
-                                    + "|rm|smil|wmv|swf|wma|zip|rar|gz|pdf)$", parsed.path.lower())
+                                    + "|rm|smil|wmv|swf|wma|zip|rar|gz|pdf|txt)$", parsed.path.lower())
 
 
         except TypeError:

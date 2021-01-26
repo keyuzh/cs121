@@ -4,17 +4,7 @@
 # ID: 19898090
 # UCINetID: keyuz4
 
-############################################################################
-##  PART A: Word Frequencies:                                             ##
-##   Description:                                                         ##
-##      Run on command line using command:                                ##
-##          python PartA.py [filename]                                    ##
-##   Input: [filename] - the path to a txt file                           ##
-##   Output: prints tokens and frequencies                                ##
-##                                                                        ##
-##   Source: https://canvas.eee.uci.edu/courses/32171/assignments/623046  ##
-##   (Header Uploaded by Will Schallock, last updated 1/5/21)             ##
-############################################################################
+# modified version of project 1 - Part A for use in project 2
 
 import string
 import sys
@@ -35,6 +25,7 @@ class WordFrequencies:
                 O(n) * O(1)
                 -> O(n)
         """
+        # project2: takes a str to tokenize instead of a text file
         tokens = []
         word = ''
         for char in text:
@@ -50,7 +41,7 @@ class WordFrequencies:
                 word = ''
         return tokens
 
-    def computeWordFrequencies(self, tokens: ['token']) -> {'token': int}:
+    def computeWordFrequencies(self, tokens: ['token'], frequencies: {'token': int}, stopwords: {str}):
         """
         counts the number of occurrences of each token in the token list,
         returns a dict containing the count of each token
@@ -59,13 +50,16 @@ class WordFrequencies:
         :complexity: O(n) time
             iterate through entire list of tokens, O(n)
         """
-        frequencies = dict()
+        # project2: update this method to take existing dict as parameter and modify it
+        #           additionally, stopwords are not inserted in the dict; words shorter than 3 char are ignored
+        # frequencies = dict()
         for token in tokens:
             # if the key is not in dict, dict.setdefault method initiates the value at 0
-            frequencies[token] = frequencies.setdefault(token, 0) + 1
-        return frequencies
+            if token not in stopwords and len(token) >= 3:
+                frequencies[token] = frequencies.setdefault(token, 0) + 1
+        # return frequencies
 
-    def print(self, frequencies: {'token': int}) -> None:
+    def print(self, frequencies: {'token': int}) -> [str]:
         """
         prints out the word frequency counts onto the screen, ordered by decreasing frequency,
         ties are sorted alphabetically and in ascending order.
@@ -78,10 +72,9 @@ class WordFrequencies:
                 O(n log n) + O(n)
                 -> O(n log n)
         """
-        for k, v in sorted(frequencies.items(),
-                           # sort first by value in decreasing order, then by key in alphabetical order
-                           key=lambda x: (-x[1], x[0])):
-            print(k, '\t', v, sep='')
+        # project2: return the key-value pairs as a list of str instead of print to console
+        return [f"{k}\t{v}" for k, v in sorted(frequencies.items(), key=lambda x: (-x[1], x[0]))]
+        # sort first by value in decreasing order, then by key in alphabetical order
 
 
 def main():
