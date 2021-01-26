@@ -93,6 +93,10 @@ class Crawler:
 
         # only want link to other websites (not images, etc.), add to final list only if 'href'
         outputLinks = [x[2] for x in links if x[1] == 'href']
+
+        # analytics: extract text from html and pass to analytics
+        self.analytics.count_words(url_data['url'], string_document.text_content())
+
         return outputLinks
 
     def is_valid(self, url):
