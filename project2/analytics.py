@@ -26,11 +26,11 @@ class Analytics:
         #     - whether this page is considered a crawler trap
         #       example: https://www.ics.uci.edu/community/news/view_news?id=1473
         # {
-        #     "first_half": str         (netloc+path; e.g. www.ics.uci.edu/community/news/view_news)
+        #     "first_half": (str, str)          (netloc, path; e.g. www.ics.uci.edu, /community/news/view_news)
         #     {
-        #         "second_half": str    (params+query+fragment; e.g. ?id=1234)
-        #         "seen_times": int     (number of times that first half of url is seen by crawler)
-        #         "is_trap": bool,      (whether the page is a trap)
+        #         "parameter": (str, str, str)  (urlparse.params, urlparse.query, urlparse.fragment)
+        #         "seen_times": int             (number of times that first half of url is seen by crawler)
+        #         "is_trap": bool,              (whether the page is a trap)
         #     }
         # }
 
@@ -71,7 +71,7 @@ class Analytics:
             f.write("url:\n")
             for k, v in self.crawlHistory.items():
                 to_write = "(T) " if v["is_trap"] else "    "
-                self._write(f, to_write + k)
+                self._write(f, to_write + k[0] + k[1])
 
     def write_longest_page(self):
         with open("longest_page.txt", 'w') as f:
