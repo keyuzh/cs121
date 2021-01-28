@@ -14,14 +14,14 @@ class Crawler:
     """
 
     def __init__(self, frontier, corpus, analytics):
-    
+
         self.frontier = frontier
         self.corpus = corpus
-        self.analytics = analytics 
-        #self.crawlHistory = {} #Dictionary to story crawl history
-        #self.traps = [] #list that story all the known traps url
-        #self.most_valid_links = 0 #
-        #self.most_valid_page = None # 
+        self.analytics = analytics
+        # self.crawlHistory = {} #Dictionary to story crawl history
+        # self.traps = [] #list that story all the known traps url
+        # self.most_valid_links = 0 #
+        # self.most_valid_page = None #
 
     def start_crawling(self):
         """
@@ -103,30 +103,55 @@ class Crawler:
         filter out crawler traps. Duplicated urls will be taken care of by frontier. You don't need to check for duplication
         in this method
         """
-        #https://docs.python.org/3/library/urllib.parse.html
-        #parsed.scheme = URL specifier
-        #parsed.netloc = NetWork location Ex: www.uci.edu
-        #parsed.path = path
-        #parsed.params = parameter for last path element
-        #parsed.query = query component
+        # https://docs.python.org/3/library/urllib.parse.html
+        # parsed.scheme = URL specifier
+        # parsed.netloc = NetWork location Ex: www.uci.edu
+        # parsed.path = path
+        # parsed.params = parameter for last path element
+        # parsed.query = query component
+        # EX: scheme://netloc/path;parameters?query#fragment
         parsed = urlparse(url)
+
+        # not even a webpage, no need to keep track of them
         if parsed.scheme not in set(["http", "https"]):
             return False
-        if len(url) > 300: #Long url --> traps
-            return False
-        tempUrl = parsed.netloc+parsed.path #create new string with the domain + path
-        if tempUrl in self.analytics.traps:#
-            return False #url is a known traps
-        # if tempUrl not in self.crawlHistory:
-        #     self.crawlHistory[tempUrl] = 1 #never browsed, append to dict and set browse time to 1
-        #     return True
-        # else:
-        #     self.crawlHistory[tempUrl] +=1 #increase the browse time
-        self.analytics.crawlHistory[tempUrl] = self.analytics.crawlHistory.setdefault(tempUrl, 0) + 1
-        if self.analytics.crawlHistory[tempUrl] >10:# #browse same path over 10 times --> trap, loop
-            self.analytics.traps.append(tempUrl)# #store in the list so that we can save the run time next time
-            return False
 
+        first_half = (parsed.netloc, parsed.path)
+        second_half = (parsed.params, parsed.query, parsed.fragment)
+
+        if first_half not in self.analytics.crawlHistory.keys():
+            # first time seeing this page, construct its inner dict
+            self.analytics.crawlHistory[first_half] = {
+                "parameter": second_half,
+                "seen_times": 0,
+                "is_trap": False
+            }
+
+        # helper variable to shorten the lines or the code looks like Java
+        inner_dict = self.analytics.crawlHistory[first_half]
+        # increment the number of times seen
+        inner_dict["seen_times"] += 1
+
+        # update parameters with the most recent one
+        old_query_length = len(inner_dict["parameter"][1])  # need to save this variable for later
+        inner_dict["parameter"] = second_half
+
+        if inner_dict["is_trap"]:
+            # url is a known traps
+            return False
+        if len(url) > 300 or (0 < old_query_length < len(parsed.query)):
+            # url is super long or the length of query gets longer every time -> trap
+            inner_dict["is_trap"] = True
+            return False
+        if inner_dict["seen_times"] > 1 and len(parsed.fragment) > 0:
+            # already seen this page, the parameter simply take us to a specific location of the page
+            # the actual content of the page is the same, no point in crawling again
+            return False
+        if inner_dict["seen_times"] > 10:
+            # browse same page over 10 times --> trap, loop
+            # inner_dict["is_trap"] = True
+            return False
+        # test against provided regex
         try:
             return ".ics.uci.edu" in parsed.hostname \
                    and not re.match(".*\.(css|js|bmp|gif|jpe?g|ico" + "|png|tiff?|mid|mp2|mp3|mp4" \
@@ -134,18 +159,6 @@ class Crawler:
                                     + "|ps|eps|tex|ppt|pptx|doc|docx|xls|xlsx|names|data|dat|exe|bz2|tar|msi|bin|7z|psd|dmg|iso|epub|dll|cnf|tgz|sha1" \
                                     + "|thmx|mso|arff|rtf|jar|csv" \
                                     + "|rm|smil|wmv|swf|wma|zip|rar|gz|pdf|txt)$", parsed.path.lower())
-
-
         except TypeError:
             print("TypeError for ", parsed)
             return False
-
-
-
-
-
-
-
-
-
-    
