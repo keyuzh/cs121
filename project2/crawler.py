@@ -138,8 +138,10 @@ class Crawler:
         if inner_dict["is_trap"]:
             # url is a known traps
             return False
-        if len(url) > 300 or len(second_half) > old_second_half_length:
-            # url is super long or it gets longer each time
+        if len(url) > 300 or (
+                0 < old_second_half_length < len(second_half)):
+            # url is super long
+            # or the length of extra parameters/queries gets longer every time
             inner_dict["is_trap"] = True
             return False
         if inner_dict["seen_times"] > 10:
