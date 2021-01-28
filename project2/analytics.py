@@ -11,14 +11,31 @@ from project1 import WordFrequencies
 
 import lxml
 from lxml.html.clean import Cleaner
+from collections import defaultdict
 
 
 class Analytics:
     def __init__(self):
         self.wf = WordFrequencies()
         self.frequencies = dict()
-        self.crawlHistory = {} #Dictionary to story crawl history
-        self.traps = [] #list that story all the known traps url
+
+        self.crawlHistory = dict()  # Dictionary to story crawl history
+        # crawlHistory is a nested dict that stores the following info:
+        #     - full url, separated into two parts after parsing with urllib.parse.urlparse
+        #     - number of times the crawler have seen this page
+        #     - whether this page is considered a crawler trap
+        #       example: https://www.ics.uci.edu/community/news/view_news?id=1473
+        # {
+        #     "first_half": str         (netloc+path; e.g. www.ics.uci.edu/community/news/view_news)
+        #     {
+        #         "second_half": str    (params+query+fragment; e.g. ?id=1234)
+        #         "seen_times": int     (number of times that first half of url is seen by crawler)
+        #         "is_trap": bool,      (whether the page is a trap)
+        #     }
+        # }
+
+        # should no longer need this
+        # self.traps = [] #list that story all the known traps url
         self.most_valid_links = 0
         self.most_valid_page = None
         # tuple containing the url of the page with the most words and the number of words
@@ -34,10 +51,11 @@ class Analytics:
         file.write(line + '\n')
 
     def write_crawl_history(self):
-    #
-        with open("crawl_history.txt", "w") as f:
-            for key, value in self.crawlHistory.items():
-                f.write(f"{key:<30}{value:>10}\n")
+        # TODO: write subdomains instead
+        # with open("crawl_history.txt", "w") as f:
+        #     for key, value in self.crawlHistory.items():
+        #         f.write(f"{key:<30}{value:>10}\n")
+        pass
 
     def write_most_valid_page(self):
         # update format
@@ -51,12 +69,9 @@ class Analytics:
         #
         with open("url_and_traps.txt", "w") as f:
             f.write("url:\n")
-            for key in self.crawlHistory.keys():
-                f.write("  " + key + "\n")
-
-            f.write("\nTraps:\n")
-            for item in self.traps:
-                f.write("  " + item + "\n")
+            for k, v in self.crawlHistory.items():
+                to_write = "(T) " if v["is_trap"] else "    "
+                self._write(f, to_write + k)
 
     def write_longest_page(self):
         with open("longest_page.txt", 'w') as f:

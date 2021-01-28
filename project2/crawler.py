@@ -14,14 +14,14 @@ class Crawler:
     """
 
     def __init__(self, frontier, corpus, analytics):
-    
+
         self.frontier = frontier
         self.corpus = corpus
-        self.analytics = analytics 
-        #self.crawlHistory = {} #Dictionary to story crawl history
-        #self.traps = [] #list that story all the known traps url
-        #self.most_valid_links = 0 #
-        #self.most_valid_page = None # 
+        self.analytics = analytics
+        # self.crawlHistory = {} #Dictionary to story crawl history
+        # self.traps = [] #list that story all the known traps url
+        # self.most_valid_links = 0 #
+        # self.most_valid_page = None #
 
     def start_crawling(self):
         """
@@ -103,31 +103,50 @@ class Crawler:
         filter out crawler traps. Duplicated urls will be taken care of by frontier. You don't need to check for duplication
         in this method
         """
-        #https://docs.python.org/3/library/urllib.parse.html
-        #parsed.scheme = URL specifier
-        #parsed.netloc = NetWork location Ex: www.uci.edu
-        #parsed.path = path
-        #parsed.params = parameter for last path element
-        #parsed.query = query component
+        # https://docs.python.org/3/library/urllib.parse.html
+        # parsed.scheme = URL specifier
+        # parsed.netloc = NetWork location Ex: www.uci.edu
+        # parsed.path = path
+        # parsed.params = parameter for last path element
+        # parsed.query = query component
+        # EX: scheme://netloc/path;parameters?query#fragment
         parsed = urlparse(url)
+        # not even a webpage, no need to keep track of them
         if parsed.scheme not in set(["http", "https"]):
             return False
-        if len(url) > 300: #Long url --> traps
-            return False
-        tempUrl = parsed.netloc+parsed.path #create new string with the domain + path
-        if tempUrl in self.analytics.traps:#
-            return False #url is a known traps
-        if tempUrl in self.analytics.crawlHistory:
-            # already crawled this page. It may or may not be a trap, but we dont want to crawl the same page multiple
-            # times so return false here to not crawl again
-            self.analytics.crawlHistory[tempUrl] += 1
-            # if we see this page too many times, identify it as trap
-            if self.analytics.crawlHistory[tempUrl] > 10:  # #browse same path over 10 times --> trap, loop
-                self.analytics.traps.append(tempUrl)  # #store in the list so that we can save the run time next time
-            return False
-        # never seen this page, check validity with provided regex
-        self.analytics.crawlHistory[tempUrl] = 1
 
+        first_half = parsed.netloc + parsed.path  # create new string with the domain + path
+        second_half = parsed.params + parsed.query + parsed.fragment
+
+        if first_half not in self.analytics.crawlHistory.keys():
+            # first time seeing this page, construct its inner dict
+            self.analytics.crawlHistory[first_half] = {
+                "second_half": second_half,
+                "seen_times": 0,
+                "is_trap": False
+            }
+
+        # helper variable to shorten the lines or the code looks like Java
+        inner_dict = self.analytics.crawlHistory[first_half]
+        # increment the number of times seen
+        inner_dict["seen_times"] += 1
+
+        # always use the newest second_half
+        old_second_half_length = len(inner_dict["second_half"])
+        inner_dict["second_half"] = second_half
+
+        if inner_dict["is_trap"]:
+            # url is a known traps
+            return False
+        if len(url) > 300 or len(second_half) > old_second_half_length:
+            # url is super long or it gets longer each time
+            inner_dict["is_trap"] = True
+            return False
+        if inner_dict["seen_times"] > 10:
+            # browse same page over 10 times --> trap, loop
+            # inner_dict["is_trap"] = True
+            return False
+        # test against provided regex
         try:
             return ".ics.uci.edu" in parsed.hostname \
                    and not re.match(".*\.(css|js|bmp|gif|jpe?g|ico" + "|png|tiff?|mid|mp2|mp3|mp4" \
@@ -135,18 +154,6 @@ class Crawler:
                                     + "|ps|eps|tex|ppt|pptx|doc|docx|xls|xlsx|names|data|dat|exe|bz2|tar|msi|bin|7z|psd|dmg|iso|epub|dll|cnf|tgz|sha1" \
                                     + "|thmx|mso|arff|rtf|jar|csv" \
                                     + "|rm|smil|wmv|swf|wma|zip|rar|gz|pdf|txt)$", parsed.path.lower())
-
-
         except TypeError:
             print("TypeError for ", parsed)
             return False
-
-
-
-
-
-
-
-
-
-    
