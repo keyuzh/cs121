@@ -41,10 +41,10 @@ class Analytics:
         self.crawl_history = dict()  # Dictionary to story crawl history
 
         # collection of all crawled (valid) urls, used for analytics #1 and #3
-        self.downloaded_urls = set()
+        self.downloaded_urls = list()
 
         # collection of all traps
-        self.traps = set()
+        self.traps = list()
 
         # tuple containing the url with the most valid out links
         self.most_valid_page = (None, 0)
@@ -59,9 +59,10 @@ class Analytics:
         with open(file, 'r') as f:
             return eval(f.read())
 
-    def _write(self, file: open, line: str):
+    def _write_line(self, file: open, line: str):
+        # write the given str as a single line
         # use this method to write to file so you can forget \n
-        file.write(line + '\n')
+        file.write(line.replace('\n', '') + '\n')
 
     def write_crawl_history(self):
         """
@@ -73,10 +74,10 @@ class Analytics:
         for url in self.downloaded_urls:
             subdomain[urlparse(url).netloc] += 1
         with open("analytics_1_subdomains.txt", "w") as f:
-            self._write(f, "Subdomains\tCount")
+            self._write_line(f, "Subdomains\tCount")
             # for better formatting, sort the output by largest crawl count
             for url, count in sorted(subdomain.items(), key=lambda x: (-x[1], x[0])):
-                self._write(f, f"{url}\t{count}")
+                self._write_line(f, f"{url}\t{count}")
 
     def write_most_valid_page(self):
         """
@@ -84,43 +85,45 @@ class Analytics:
         the number of links that are present on a particular webpage.
         """
         with open("analytics_2_most_valid_page.txt", "w") as f:
-            self._write(f, "Page with the most valid out links:")
-            self._write(f, str(self.most_valid_page[0]))
-            self._write(f, "Number of out links:")
-            self._write(f, str(self.most_valid_page[1]))
+            self._write_line(f, "Page with the most valid out links:")
+            self._write_line(f, str(self.most_valid_page[0]))
+            self._write_line(f, "Number of out links:")
+            self._write_line(f, str(self.most_valid_page[1]))
 
     def write_url_traps(self):
         """
         Analytics #3: List of downloaded URLs and identified traps.
         """
         with open("analytics_3_url_and_traps.txt", "w") as f:
-            self._write(f, "List of valid urls and traps")
-            self._write(f, "url:")
+            self._write_line(f, "List of valid urls and traps")
+            self._write_line(f, "url:")
             for url in self.downloaded_urls:
-                self._write(f, "    " + url)
-            self._write(f, "="*25)
-            self._write(f, "\ntraps:")
+                self._write_line(f, f"    {url}")
+            self._write_line(f, "=" * 25)
+            self._write_line(f, "")
+            self._write_line(f, "traps:")
             for url in self.traps:
-                self._write(f, "    " + url)
+                self._write_line(f, f"    {url}")
 
     def write_longest_page(self):
         """
         Analytics #4: the longest page in terms of number of words
         """
         with open("analytics_4_longest_page.txt", 'w') as f:
-            self._write(f, "Longest page in terms of number of words:")
-            self._write(f, str(self.longest_page[0]))
-            self._write(f, "Number of words:")
-            self._write(f, str(self.longest_page[1]))
+            self._write_line(f, "Longest page in terms of number of words:")
+            self._write_line(f, str(self.longest_page[0]))
+            self._write_line(f, "Number of words:")
+            self._write_line(f, str(self.longest_page[1]))
 
     def write_common_words(self):
         """
         Analytics #5 the 50 most common words in the entire set of pages
         """
         with open("analytics_5_most_common_words.txt", 'w') as f:
-            self._write(f, "50 most common words:")
-            self._write(f, "Word\tCount")
-            self._write(f, '\n'.join(self.wf.print(self.frequencies)[:50]))
+            self._write_line(f, "50 most common words:")
+            self._write_line(f, "Word\tCount")
+            for word in self.wf.print(self.frequencies)[:50]:
+                self._write_line(f, word)
 
     def write_all(self):
         self.write_crawl_history()
@@ -156,8 +159,8 @@ class Analytics:
 
     def record_crawled_url(self, url: str):
         # add a valid url into the set of downloaded urls
-        self.downloaded_urls.add(url)
+        self.downloaded_urls.append(url)
 
     def record_trap(self, url: str):
         # add a trap to the set of traps
-        self.traps.add(url)
+        self.traps.append(url)

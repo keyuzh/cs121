@@ -75,7 +75,8 @@ class Crawler:
         # .iterlinks yields(element, attribute, link, pos) for every link in the document.
         # only want link to other websites (not images, etc.), add to final list only if 'href'
         # sometimes the link is between two lines and has a \n in between, remove that
-        outputLinks = [x[2].replace("\n", "") for x in string_document.iterlinks() if x[1] == 'href']
+        # outputLinks = [x[2].replace("\n", "") for x in string_document.iterlinks() if x[1] == 'href']
+        outputLinks = [x[2] for x in string_document.iterlinks() if x[1] == 'href']
         # analytics: extract text from html and pass to analytics
         self.analytics.count_words(url_data['url'], string_document)
         return outputLinks
