@@ -1,18 +1,16 @@
-# 1. Keep track of the subdomains that it visited, and count how many different URLs it has
-# processed from each of those subdomains.
-# 2. Find the page with the most valid out links (of all pages given to your crawler). Out Links are the
-# number of links that are present on a particular webpage.
-# 3. List of downloaded URLs and identified traps.
-# 4. What is the longest page in terms of number of words? (HTML markup doesn’t count as words)
-# 5. What are the 50 most common words in the entire set of pages? (Ignore English stop words,
-# which can be found, (https://www.ranks.nl/stopwords)
+# analytics.py
+# CS121 Winter 2021 Project 2: Web Crawler
+# Group: 2
+# Name: Keyu Zhang
+# UCINetID: keyuz4
+
+from collections import defaultdict
+from urllib.parse import urlparse
+
+from lxml.html.clean import Cleaner
 
 from project1 import WordFrequencies
 
-import lxml
-from lxml.html.clean import Cleaner
-from collections import defaultdict
-from urllib.parse import urlparse
 
 class Analytics:
     def __init__(self):
@@ -40,7 +38,7 @@ class Analytics:
         #         "is_trap": bool               whether the page has been marked as a trap
         #     }
         # }
-        self.crawlHistory = dict()  # Dictionary to story crawl history
+        self.crawl_history = dict()  # Dictionary to story crawl history
 
         # collection of all crawled (valid) urls, used for analytics #1 and #3
         self.downloaded_urls = set()
@@ -82,7 +80,7 @@ class Analytics:
         Analytics #2: Find the page with the most valid out links (of all pages given to your crawler). Out Links are
         the number of links that are present on a particular webpage.
         """
-        with open("most_valid_page.txt", "w") as f:
+        with open("analytics_2_most_valid_page.txt", "w") as f:
             self._write(f, "Page with the most valid out links:")
             self._write(f, str(self.most_valid_page))
             self._write(f, "Number of out links:")
@@ -93,9 +91,9 @@ class Analytics:
         Analytics #3: List of downloaded URLs and identified traps.
         """
         # TODO: use url from self.downloaded_urls
-        with open("url_and_traps.txt", "w") as f:
+        with open("analytics_3_url_and_traps.txt", "w") as f:
             f.write("url:\n")
-            for k, v in self.crawlHistory.items():
+            for k, v in self.crawl_history.items():
                 to_write = "(T) " if v["is_trap"] else "    "
                 self._write(f, to_write + k[0] + k[1])
 
@@ -103,7 +101,7 @@ class Analytics:
         """
         Analytics #4: the longest page in terms of number of words
         """
-        with open("longest_page.txt", 'w') as f:
+        with open("analytics_4_longest_page.txt", 'w') as f:
             self._write(f, "Longest page in terms of number of words:")
             self._write(f, str(self.longest_page[0]))
             self._write(f, "Number of words:")
@@ -113,7 +111,7 @@ class Analytics:
         """
         Analytics #5 the 50 most common words in the entire set of pages
         """
-        with open("most_common_words.txt", 'w') as f:
+        with open("analytics_5_most_common_words.txt", 'w') as f:
             self._write(f, "50 most common words:")
             self._write(f, '\n'.join(self.wf.print(self.frequencies)[:50]))
 
@@ -150,5 +148,6 @@ class Analytics:
         cleaned = cleaner.clean_html(html)
         return cleaned.text_content()
 
-    def record_crawled_url(self, url):
+    def record_crawled_url(self, url: str):
+        # add a valid url into the set of downloaded urls
         self.downloaded_urls.add(url)

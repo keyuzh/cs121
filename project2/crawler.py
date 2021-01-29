@@ -121,16 +121,16 @@ class Crawler:
         parameter = (parsed.params, parsed.query, parsed.fragment)
 
         first_time = False
-        if path not in self.analytics.crawlHistory.keys():
+        if path not in self.analytics.crawl_history.keys():
             # first time seeing this page, construct its inner dict
-            self.analytics.crawlHistory[path] = {
+            self.analytics.crawl_history[path] = {
                 "parameter": parameter,
                 "is_trap": False
             }
             first_time = True
 
         # helper variable to shorten the lines or the code looks like Java
-        inner_dict = self.analytics.crawlHistory[path]
+        inner_dict = self.analytics.crawl_history[path]
 
         # update parameters with the most recent one, while saving the old one
         old_parameter = inner_dict["parameter"]  # need to save this variable for later
