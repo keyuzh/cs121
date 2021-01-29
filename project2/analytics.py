@@ -64,18 +64,24 @@ class Analytics:
         file.write(line + '\n')
 
     def write_crawl_history(self):
-        # analytics #1
+        """
+        Analytics #1: Keep track of the subdomains that it visited, and count how many different URLs it has
+        processed from each of those subdomains.
+        """
         # dict to keep track of the number crawled in each subdomain
         subdomain = defaultdict(int)
         for url in self.downloaded_urls:
             subdomain[urlparse(url).netloc] += 1
         with open("analytics_1_subdomains.txt", "w") as f:
             # for better formatting, sort the output by largest crawl count
-            for url, count in sorted(subdomain.items(), key=lambda x: -x[1]):
+            for url, count in sorted(subdomain.items(), key=lambda x: (-x[1], x[0])):
                 self._write(f, f"{url}\t{count}")
 
     def write_most_valid_page(self):
-        # update format
+        """
+        Analytics #2: Find the page with the most valid out links (of all pages given to your crawler). Out Links are
+        the number of links that are present on a particular webpage.
+        """
         with open("most_valid_page.txt", "w") as f:
             self._write(f, "Page with the most valid out links:")
             self._write(f, str(self.most_valid_page))
@@ -83,6 +89,9 @@ class Analytics:
             self._write(f, str(self.most_valid_links))
 
     def write_url_traps(self):
+        """
+        Analytics #3: List of downloaded URLs and identified traps.
+        """
         # TODO: use url from self.downloaded_urls
         with open("url_and_traps.txt", "w") as f:
             f.write("url:\n")
@@ -91,6 +100,9 @@ class Analytics:
                 self._write(f, to_write + k[0] + k[1])
 
     def write_longest_page(self):
+        """
+        Analytics #4: the longest page in terms of number of words
+        """
         with open("longest_page.txt", 'w') as f:
             self._write(f, "Longest page in terms of number of words:")
             self._write(f, str(self.longest_page[0]))
@@ -98,6 +110,9 @@ class Analytics:
             self._write(f, str(self.longest_page[1]))
 
     def write_common_words(self):
+        """
+        Analytics #5 the 50 most common words in the entire set of pages
+        """
         with open("most_common_words.txt", 'w') as f:
             self._write(f, "50 most common words:")
             self._write(f, '\n'.join(self.wf.print(self.frequencies)[:50]))
