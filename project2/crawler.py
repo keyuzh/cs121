@@ -18,10 +18,6 @@ class Crawler:
         self.frontier = frontier
         self.corpus = corpus
         self.analytics = analytics
-        # self.crawlHistory = {} #Dictionary to story crawl history
-        # self.traps = [] #list that story all the known traps url
-        # self.most_valid_links = 0 #
-        # self.most_valid_page = None #
 
     def start_crawling(self):
         """
@@ -52,21 +48,6 @@ class Crawler:
         that have already been fetched. The frontier takes care of that.
         Suggested library: lxml
         """
-        outputLinks = []
-        # print(f"parsing: {url_data['url']}")
-        # print(f"response code: {url_data['http_code']}")
-        # print(f"type: {url_data['content_type']}")
-        # if (
-        #         # page must be valid (http 200)
-        #         url_data['http_code'] != 200
-        #         # content must be html and in utf-8 encoding (I dont know why url_data['content_type'] is a str
-        #         # representing a bytes object, but anyways, it is what it is)
-        #         or url_data['content_type'] != "b'text/html; charset=UTF-8'"
-        #         # content must exist in corpus
-        #         or url_data['content'] is None
-        # ):
-        #     return []
-
         # use redirected url if possible
         if url_data['is_redirected'] and url_data['url'] != url_data['final_url']:
             url_data['url'] = url_data['final_url']
@@ -84,18 +65,13 @@ class Crawler:
             # e.g. http code is not 200; content encoding is not utf-8 and cannot decode;
             #      content does not exist in corpus and therefore url_data['content'] is None;
             return []
-        except Exception as e:
-            print(e)
-            raise
         # convert links to absolute link
         string_document.make_links_absolute(url_data['url'])
         # .iterlinks yields(element, attribute, link, pos) for every link in the document.
         # only want link to other websites (not images, etc.), add to final list only if 'href'
         outputLinks = [x[2] for x in string_document.iterlinks() if x[1] == 'href']
-
         # analytics: extract text from html and pass to analytics
         self.analytics.count_words(url_data['url'], string_document)
-
         return outputLinks
 
     def is_valid(self, url):
@@ -142,11 +118,13 @@ class Crawler:
         if len(url) > 300 or (0 < len(old_parameter[1]) < len(parsed.query)):
             # url is super long or the length of query gets longer every time -> trap
             inner_dict["is_trap"] = True
+            self.analytics.record_trap(url)
             return False
         if re.match(r"^.*?(/.+?/).*?\1.*$|^.*?/(.+?/)\2.*$", url):
             # repeating sub-directory -> trap
             # regex from https://support.archive-it.org/hc/en-us/articles/208332963-Modify-your-crawl-scope-with-a-Regular-Expression
             inner_dict["is_trap"] = True
+            self.analytics.record_trap(url)
             return False
         if not first_time and (old_parameter == parameter or len(parsed.fragment) > 0):
             # already seen this page, the parameter did not change or not in a meaningful way (e.g. simply take us to a

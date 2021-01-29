@@ -43,6 +43,9 @@ class Analytics:
         # collection of all crawled (valid) urls, used for analytics #1 and #3
         self.downloaded_urls = set()
 
+        # collection of all traps
+        self.traps = set()
+
         # TODO: maybe change these into one variable?
         self.most_valid_links = 0
         self.most_valid_page = None
@@ -90,12 +93,13 @@ class Analytics:
         """
         Analytics #3: List of downloaded URLs and identified traps.
         """
-        # TODO: use url from self.downloaded_urls
         with open("analytics_3_url_and_traps.txt", "w") as f:
             f.write("url:\n")
-            for k, v in self.crawl_history.items():
-                to_write = "(T) " if v["is_trap"] else "    "
-                self._write(f, to_write + k[0] + k[1])
+            for url in self.downloaded_urls:
+                self._write(f, "    " + url)
+            self._write(f, "\ntraps:")
+            for url in self.traps:
+                self._write(f, "    " + url)
 
     def write_longest_page(self):
         """
@@ -151,3 +155,7 @@ class Analytics:
     def record_crawled_url(self, url: str):
         # add a valid url into the set of downloaded urls
         self.downloaded_urls.add(url)
+
+    def record_trap(self, url: str):
+        # add a trap to the set of traps
+        self.traps.add(url)
