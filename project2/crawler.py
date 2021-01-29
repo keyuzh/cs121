@@ -3,7 +3,6 @@ import re
 from urllib.parse import urlparse
 
 from lxml import etree, html
-from difflib import SequenceMatcher
 
 logger = logging.getLogger(__name__)
 
@@ -118,25 +117,24 @@ class Crawler:
         if parsed.scheme not in set(["http", "https"]):
             return False
 
-        first_half = (parsed.netloc, parsed.path)
-        second_half = (parsed.params, parsed.query, parsed.fragment)
+        path = (parsed.netloc, parsed.path)
+        parameter = (parsed.params, parsed.query, parsed.fragment)
 
-        if first_half not in self.analytics.crawlHistory.keys():
+        first_time = False
+        if path not in self.analytics.crawlHistory.keys():
             # first time seeing this page, construct its inner dict
-            self.analytics.crawlHistory[first_half] = {
-                "parameter": second_half,
-                "seen_times": 0,
+            self.analytics.crawlHistory[path] = {
+                "parameter": parameter,
                 "is_trap": False
             }
+            first_time = True
 
         # helper variable to shorten the lines or the code looks like Java
-        inner_dict = self.analytics.crawlHistory[first_half]
-        # increment the number of times seen
-        inner_dict["seen_times"] += 1
+        inner_dict = self.analytics.crawlHistory[path]
 
-        # update parameters with the most recent one
+        # update parameters with the most recent one, while saving the old one
         old_parameter = inner_dict["parameter"]  # need to save this variable for later
-        inner_dict["parameter"] = second_half
+        inner_dict["parameter"] = parameter
 
         if inner_dict["is_trap"]:
             # url is a known traps
@@ -146,14 +144,11 @@ class Crawler:
             inner_dict["is_trap"] = True
             return False
         if re.match(r"^.*?(/.+?/).*?\1.*$|^.*?/(.+?/)\2.*$", url):
-            # repeating sub-directory, trap
+            # repeating sub-directory -> trap
             # regex from https://support.archive-it.org/hc/en-us/articles/208332963-Modify-your-crawl-scope-with-a-Regular-Expression
             inner_dict["is_trap"] = True
             return False
-        if inner_dict["seen_times"] > 1 and (
-                SequenceMatcher(None, old_parameter[0]+old_parameter[1]+old_parameter[2], parsed.params+parsed.query+parsed.fragment).ratio() > 0.8
-                or len(parsed.fragment) > 0
-        ):
+        if not first_time and (old_parameter == parameter or len(parsed.fragment) > 0):
             # already seen this page, the parameter did not change or not in a meaningful way (e.g. simply take us to a
             # specific location of the page). the actual content of the page is the same, no point in crawling again
             return False

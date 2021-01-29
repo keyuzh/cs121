@@ -16,33 +16,43 @@ from urllib.parse import urlparse
 
 class Analytics:
     def __init__(self):
+        # frequencies is a dict that stores the frequencies of word, or tokens, after the crawler has crawled the page
+        # and extracted the text from html
         self.wf = WordFrequencies()
         self.frequencies = dict()
 
-        self.crawlHistory = dict()  # Dictionary to story crawl history
         # crawlHistory is a nested dict that stores the following info:
         #     - full url, separated into two parts after parsing with urllib.parse.urlparse
-        #     - number of times the crawler have seen this page
+        #           > the first part is the path of webpage, this is used as the key of the outer dict,
+        #             to identify whether the exact webpage has been crawled or not
+        #           > the second part is the dynamic part of this webpage; includes query, parameter, fragment
+        #             this is stored as a value in the inner dict, it is updated each time that the web page is seen by
+        #             is_valid() function in crawler.py
         #     - whether this page is considered a crawler trap
-        #       example: https://www.ics.uci.edu/community/news/view_news?id=1473
+
+        # The structure of this dict is as follows:
+        #       example url: https://www.ics.uci.edu/community/news/view_news?id=1473
         # {
-        #     "first_half": (str, str)          (netloc, path; e.g. www.ics.uci.edu, /community/news/view_news)
+        #     "path": (str, str)                tuple(netloc, path) ex. (www.ics.uci.edu, /community/news/view_news)
         #     {
-        #         "parameter": (str, str, str)  (urlparse.params, urlparse.query, urlparse.fragment)
-        #         "seen_times": int             (number of times that first half of url is seen by crawler)
-        #         "is_trap": bool,              (whether the page is a trap)
+        #         "parameter": (str, str, str)  tuple(urlparse.params, urlparse.query, urlparse.fragment)
+        #                                       ex. ("", "id=1473", "")
+        #         "is_trap": bool               whether the page has been marked as a trap
         #     }
         # }
+        self.crawlHistory = dict()  # Dictionary to story crawl history
 
-        # collection of all crawled (valid) urls, useful for analytics #1 and #3
+        # collection of all crawled (valid) urls, used for analytics #1 and #3
         self.downloaded_urls = set()
 
-        # should no longer need this
-        # self.traps = [] #list that story all the known traps url
+        # TODO: maybe change these into one variable?
         self.most_valid_links = 0
         self.most_valid_page = None
+
         # tuple containing the url of the page with the most words and the number of words
         self.longest_page = (None, 0)
+
+        # set of english stopwords, stored in a separate text file
         self.stopwords = self._get_stopwords("stopwords.txt")
 
     def _get_stopwords(self, file: str):
@@ -54,19 +64,15 @@ class Analytics:
         file.write(line + '\n')
 
     def write_crawl_history(self):
-        # TODO: write subdomains instead
-        # with open("crawl_history.txt", "w") as f:
-        #     for key, value in self.crawlHistory.items():
-        #         f.write(f"{key:<30}{value:>10}\n")
-        # first count the subdomains with a dict
-        subdomain_count = defaultdict(int)
+        # analytics #1
+        # dict to keep track of the number crawled in each subdomain
+        subdomain = defaultdict(int)
         for url in self.downloaded_urls:
-            subdomain = urlparse(url).netloc
-            subdomain_count[subdomain] += 1
+            subdomain[urlparse(url).netloc] += 1
         with open("analytics_1_subdomains.txt", "w") as f:
-            for url, count in sorted(subdomain_count.items(), key=lambda x: -x[1]):
+            # for better formatting, sort the output by largest crawl count
+            for url, count in sorted(subdomain.items(), key=lambda x: -x[1]):
                 self._write(f, f"{url}\t{count}")
-
 
     def write_most_valid_page(self):
         # update format
@@ -77,7 +83,7 @@ class Analytics:
             self._write(f, str(self.most_valid_links))
 
     def write_url_traps(self):
-        #
+        # TODO: use url from self.downloaded_urls
         with open("url_and_traps.txt", "w") as f:
             f.write("url:\n")
             for k, v in self.crawlHistory.items():
@@ -126,10 +132,6 @@ class Analytics:
         cleaner = Cleaner()
         cleaner.javascript = True  # This is True because we want to activate the javascript filter
         cleaner.style = True  # This is True because we want to activate the styles & stylesheet filter
-
-        # print("WITH JAVASCRIPT & STYLES")
-        # print(lxml.html.tostring(lxml.html.parse('http://www.google.com')))
-        # print("WITHOUT JAVASCRIPT & STYLES")
         cleaned = cleaner.clean_html(html)
         return cleaned.text_content()
 
