@@ -46,9 +46,8 @@ class Analytics:
         # collection of all traps
         self.traps = set()
 
-        # TODO: maybe change these into one variable?
-        self.most_valid_links = 0
-        self.most_valid_page = None
+        # tuple containing the url with the most valid out links
+        self.most_valid_page = (None, 0)
 
         # tuple containing the url of the page with the most words and the number of words
         self.longest_page = (None, 0)
@@ -74,6 +73,7 @@ class Analytics:
         for url in self.downloaded_urls:
             subdomain[urlparse(url).netloc] += 1
         with open("analytics_1_subdomains.txt", "w") as f:
+            self._write(f, "Subdomains\tCount")
             # for better formatting, sort the output by largest crawl count
             for url, count in sorted(subdomain.items(), key=lambda x: (-x[1], x[0])):
                 self._write(f, f"{url}\t{count}")
@@ -85,18 +85,20 @@ class Analytics:
         """
         with open("analytics_2_most_valid_page.txt", "w") as f:
             self._write(f, "Page with the most valid out links:")
-            self._write(f, str(self.most_valid_page))
+            self._write(f, str(self.most_valid_page[0]))
             self._write(f, "Number of out links:")
-            self._write(f, str(self.most_valid_links))
+            self._write(f, str(self.most_valid_page[1]))
 
     def write_url_traps(self):
         """
         Analytics #3: List of downloaded URLs and identified traps.
         """
         with open("analytics_3_url_and_traps.txt", "w") as f:
-            f.write("url:\n")
+            self._write(f, "List of valid urls and traps")
+            self._write(f, "url:")
             for url in self.downloaded_urls:
                 self._write(f, "    " + url)
+            self._write(f, "="*25)
             self._write(f, "\ntraps:")
             for url in self.traps:
                 self._write(f, "    " + url)
@@ -117,6 +119,7 @@ class Analytics:
         """
         with open("analytics_5_most_common_words.txt", 'w') as f:
             self._write(f, "50 most common words:")
+            self._write(f, "Word\tCount")
             self._write(f, '\n'.join(self.wf.print(self.frequencies)[:50]))
 
     def write_all(self):
@@ -127,9 +130,8 @@ class Analytics:
         self.write_common_words()
 
     def update_most_valid_links(self, url: str, count: int):
-        if count > self.most_valid_links:
-            self.most_valid_links = count
-            self.most_valid_page = url
+        if count > self.most_valid_page[1]:
+            self.most_valid_page = (url, count)
 
     def count_words(self, url: str, html: str):
         # extract text from html
