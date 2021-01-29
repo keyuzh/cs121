@@ -1,8 +1,8 @@
 # analytics.py
 # CS121 Winter 2021 Project 2: Web Crawler
 # Group: 2
-# Name: Keyu Zhang
-# UCINetID: keyuz4
+# Name: Keyu Zhang, Chak Wah Lo
+# UCINetID: keyuz4, cwlo1
 
 from collections import defaultdict
 from urllib.parse import urlparse
