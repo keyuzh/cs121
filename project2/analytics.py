@@ -12,7 +12,7 @@ from project1 import WordFrequencies
 import lxml
 from lxml.html.clean import Cleaner
 from collections import defaultdict
-
+from urllib.parse import urlparse
 
 class Analytics:
     def __init__(self):
@@ -33,6 +33,9 @@ class Analytics:
         #         "is_trap": bool,              (whether the page is a trap)
         #     }
         # }
+
+        # collection of all crawled (valid) urls, useful for analytics #1 and #3
+        self.downloaded_urls = set()
 
         # should no longer need this
         # self.traps = [] #list that story all the known traps url
@@ -55,7 +58,15 @@ class Analytics:
         # with open("crawl_history.txt", "w") as f:
         #     for key, value in self.crawlHistory.items():
         #         f.write(f"{key:<30}{value:>10}\n")
-        pass
+        # first count the subdomains with a dict
+        subdomain_count = defaultdict(int)
+        for url in self.downloaded_urls:
+            subdomain = urlparse(url).netloc
+            subdomain_count[subdomain] += 1
+        with open("analytics_1_subdomains.txt", "w") as f:
+            for url, count in sorted(subdomain_count.items(), key=lambda x: -x[1]):
+                self._write(f, f"{url}\t{count}")
+
 
     def write_most_valid_page(self):
         # update format
@@ -111,7 +122,7 @@ class Analytics:
 
     def _extract_text(self, html: str) -> str:
         # remove html markup and javascript
-        # https://stackoverflow.com/questions/8554035/remove-all-javascript-tags-and-style-tags-from-html-with-python-and-the-lxml-mod
+        # code from: https://stackoverflow.com/questions/8554035/
         cleaner = Cleaner()
         cleaner.javascript = True  # This is True because we want to activate the javascript filter
         cleaner.style = True  # This is True because we want to activate the styles & stylesheet filter
@@ -121,3 +132,6 @@ class Analytics:
         # print("WITHOUT JAVASCRIPT & STYLES")
         cleaned = cleaner.clean_html(html)
         return cleaned.text_content()
+
+    def record_crawled_url(self, url):
+        self.downloaded_urls.add(url)

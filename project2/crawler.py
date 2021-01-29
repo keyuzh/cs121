@@ -3,6 +3,7 @@ import re
 from urllib.parse import urlparse
 
 from lxml import etree, html
+from difflib import SequenceMatcher
 
 logger = logging.getLogger(__name__)
 
@@ -40,6 +41,7 @@ class Crawler:
                     current_count += 1
                     if self.corpus.get_file_name(next_link) is not None:
                         self.frontier.add_url(next_link)
+            self.analytics.record_crawled_url(url)
             self.analytics.update_most_valid_links(url, current_count)
 
     def extract_next_links(self, url_data):
@@ -133,23 +135,27 @@ class Crawler:
         inner_dict["seen_times"] += 1
 
         # update parameters with the most recent one
-        old_query_length = len(inner_dict["parameter"][1])  # need to save this variable for later
+        old_parameter = inner_dict["parameter"]  # need to save this variable for later
         inner_dict["parameter"] = second_half
 
         if inner_dict["is_trap"]:
             # url is a known traps
             return False
-        if len(url) > 300 or (0 < old_query_length < len(parsed.query)):
+        if len(url) > 300 or (0 < len(old_parameter[1]) < len(parsed.query)):
             # url is super long or the length of query gets longer every time -> trap
             inner_dict["is_trap"] = True
             return False
-        if inner_dict["seen_times"] > 1 and len(parsed.fragment) > 0:
-            # already seen this page, the parameter simply take us to a specific location of the page
-            # the actual content of the page is the same, no point in crawling again
+        if re.match(r"^.*?(/.+?/).*?\1.*$|^.*?/(.+?/)\2.*$", url):
+            # repeating sub-directory, trap
+            # regex from https://support.archive-it.org/hc/en-us/articles/208332963-Modify-your-crawl-scope-with-a-Regular-Expression
+            inner_dict["is_trap"] = True
             return False
-        if inner_dict["seen_times"] > 10:
-            # browse same page over 10 times --> trap, loop
-            # inner_dict["is_trap"] = True
+        if inner_dict["seen_times"] > 1 and (
+                SequenceMatcher(None, old_parameter[0]+old_parameter[1]+old_parameter[2], parsed.params+parsed.query+parsed.fragment).ratio() > 0.8
+                or len(parsed.fragment) > 0
+        ):
+            # already seen this page, the parameter did not change or not in a meaningful way (e.g. simply take us to a
+            # specific location of the page). the actual content of the page is the same, no point in crawling again
             return False
         # test against provided regex
         try:
@@ -157,7 +163,7 @@ class Crawler:
                    and not re.match(".*\.(css|js|bmp|gif|jpe?g|ico" + "|png|tiff?|mid|mp2|mp3|mp4" \
                                     + "|wav|avi|mov|mpeg|ram|m4v|mkv|ogg|ogv|pdf" \
                                     + "|ps|eps|tex|ppt|pptx|doc|docx|xls|xlsx|names|data|dat|exe|bz2|tar|msi|bin|7z|psd|dmg|iso|epub|dll|cnf|tgz|sha1" \
-                                    + "|thmx|mso|arff|rtf|jar|csv" \
+                                    + "|thmx|mso|arff|rtf|jar|csv" + "|c|cpp|cc|h|hpp|cs|java|py|json|asm|lif" \
                                     + "|rm|smil|wmv|swf|wma|zip|rar|gz|pdf|txt)$", parsed.path.lower())
         except TypeError:
             print("TypeError for ", parsed)
