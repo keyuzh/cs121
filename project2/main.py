@@ -1,3 +1,8 @@
+# main.py
+# CS121 Winter 2021 Project 2: Web Crawler
+# Group: 2
+# Name: Keyu Zhang, Chak Wah Lo, Emanuel Lopez
+# UCINetID: keyuz4, cwlo1, emanuel1
 import atexit
 import logging
 

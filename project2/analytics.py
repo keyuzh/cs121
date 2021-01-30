@@ -73,7 +73,7 @@ class Analytics:
         subdomain = defaultdict(int)
         for url in self.downloaded_urls:
             subdomain[urlparse(url).netloc] += 1
-        with open("analytics_1_subdomains.txt", "w") as f:
+        with open("analytics_1_subdomains.txt", "w", encoding='utf8') as f:
             self._write_line(f, "Subdomains\tCount")
             # for better formatting, sort the output by largest crawl count
             for url, count in sorted(subdomain.items(), key=lambda x: (-x[1], x[0])):
@@ -84,7 +84,7 @@ class Analytics:
         Analytics #2: Find the page with the most valid out links (of all pages given to your crawler). Out Links are
         the number of links that are present on a particular webpage.
         """
-        with open("analytics_2_most_valid_page.txt", "w") as f:
+        with open("analytics_2_most_valid_page.txt", "w", encoding='utf8') as f:
             self._write_line(f, "Page with the most valid out links:")
             self._write_line(f, str(self.most_valid_page[0]))
             self._write_line(f, "Number of out links:")
@@ -94,7 +94,7 @@ class Analytics:
         """
         Analytics #3: List of downloaded URLs and identified traps.
         """
-        with open("analytics_3_url_and_traps.txt", "w") as f:
+        with open("analytics_3_url_and_traps.txt", "w", encoding='utf8') as f:
             self._write_line(f, "List of valid urls and traps")
             self._write_line(f, "url:")
             for url in self.downloaded_urls:
@@ -109,7 +109,7 @@ class Analytics:
         """
         Analytics #4: the longest page in terms of number of words
         """
-        with open("analytics_4_longest_page.txt", 'w') as f:
+        with open("analytics_4_longest_page.txt", 'w', encoding='utf8') as f:
             self._write_line(f, "Longest page in terms of number of words:")
             self._write_line(f, str(self.longest_page[0]))
             self._write_line(f, "Number of words:")
@@ -119,7 +119,7 @@ class Analytics:
         """
         Analytics #5 the 50 most common words in the entire set of pages
         """
-        with open("analytics_5_most_common_words.txt", 'w') as f:
+        with open("analytics_5_most_common_words.txt", 'w', encoding='utf8') as f:
             self._write_line(f, "50 most common words:")
             self._write_line(f, "Word\tCount")
             for word in self.wf.print(self.frequencies)[:50]:
