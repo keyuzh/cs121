@@ -127,3 +127,5 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+/project2/spacetime_crawler_data/
+/project3/WEBPAGES_RAW/
