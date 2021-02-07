@@ -1,4 +1,4 @@
-# tokenize.py
+# lemmatization.py
 # CS121 Winter 2021 Project 3
 # Group: 6
 # Name: Keyu Zhang, Chak Wah Lo, Emanuel Lopez
@@ -10,9 +10,10 @@
 # Words in title, bold and heading (h1, h2, h3) tags are more important than the other words. You should store meta-data
 # about their importance to be used later in the retrieval phase.
 
+from nltk import tokenize
+from nltk import pos_tag
 from nltk.stem import WordNetLemmatizer
 from nltk.corpus import wordnet
-import nltk
 from project2.analytics import Analytics
 from lxml import html
 
@@ -21,11 +22,16 @@ class Tokenize:
     def __init__(self):
         self.lemmatizer = WordNetLemmatizer()
         self.p2_analytics = Analytics()
+        self.stopword = self._get_stopwords("stopwords.txt")
+
+    def _get_stopwords(self, file: str):
+        with open(file, 'r') as f:
+            return eval(f.read())
 
     # https: // www.machinelearningplus.com / nlp / lemmatization - examples - python /  # wordnetlemmatizer
     def get_wordnet_pos(self, word):
         """Map POS tag to first character lemmatize() accepts"""
-        tag = nltk.pos_tag([word])[0][1][0].upper()
+        tag = pos_tag([word])[0][1][0].upper()
         tag_dict = {"J": wordnet.ADJ,
                     "N": wordnet.NOUN,
                     "V": wordnet.VERB,
@@ -33,8 +39,14 @@ class Tokenize:
         return tag_dict.get(tag, wordnet.NOUN)
 
     def tokenize(self, text: str) -> ['tokens']:
-        tokens = nltk.tokenize.word_tokenize(text)
         # TODO: remove stop words and punctuations
+        tokens = list()
+        for token in tokenize.word_tokenize(text):
+            # one letter words, punctuations, and stopwords are removed
+            token = token.lower()
+            if len(token) == 1 or token in self.stopword:
+                continue
+            tokens.append(token)
         return tokens
 
     def lemmatize(self, tokens: ['tokens']) -> ['tokens']:
@@ -47,6 +59,7 @@ class Tokenize:
             content = bytes(content, encoding='utf8')
         html_str = html.fromstring(content)
         return self.p2_analytics._extract_text(html_str)
+
 
     # # 2. Lemmatize Single Word with the appropriate POS tag
     # word = 'feet'

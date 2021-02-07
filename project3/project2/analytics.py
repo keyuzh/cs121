@@ -9,7 +9,7 @@ from urllib.parse import urlparse
 
 from lxml.html.clean import Cleaner
 
-from project1 import WordFrequencies
+from project2.project1 import WordFrequencies
 
 
 class Analytics:
@@ -53,7 +53,7 @@ class Analytics:
         self.longest_page = (None, 0)
 
         # set of english stopwords, stored in a separate text file
-        self.stopwords = self._get_stopwords("stopwords.txt")
+        # self.stopwords = self._get_stopwords("stopwords.txt")
 
     def _get_stopwords(self, file: str):
         with open(file, 'r') as f:
