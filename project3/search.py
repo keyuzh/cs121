@@ -14,5 +14,17 @@
 # • You may add other weighting/scoring mechanisms to help refine the search results
 
 class Search:
-    def __init__(self):
-        pass
+    def __init__(self, index:dict):
+        self.index = index
+
+    def search_url(self, keyword):
+        if keyword in index.keys():
+            out_list = []
+            for l in self.index[keyword]:
+                out_list.append(l[0])
+            return out_list
+
+    def search_length(self,keyword):
+        if keyword in index.keys():
+            return len(self.index[keyword])
+
