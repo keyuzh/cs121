@@ -13,6 +13,8 @@
 # have the term frequencies and inverse document frequencies.
 # • You may add other weighting/scoring mechanisms to help refine the search results
 
+import pickle
+
 class Search:
     def __init__(self, index:dict):
         self.index = index
@@ -28,3 +30,17 @@ class Search:
         if keyword in index.keys():
             return len(self.index[keyword])
 
+
+if __name__ == '__main__':
+    inverted_index = pickle.load(open("inverted_index","rb"))
+    search = Search(inverted_index)
+    while True:
+        keyword = input("Keyword:")
+        if(keyword == "quit"):
+            break
+        urls = search.search_url(keyword)
+        len = search.search_length(keyword)
+        print("Length:",len)
+        print("Url:")
+        for url in urls[:20]:
+            print(url)
