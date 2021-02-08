@@ -20,20 +20,38 @@
 # • Tf-idf score etc
 
 from collections import defaultdict
+import pickle
 
 class Index:
-    def __init__(self):
+    def __init__(self, bookkeeping_json):
         # inverted_index will be a dict of sets,
         # the keys will be the tokens, values will be a set of tuples, storing the url, file path, and tf-idf score
         # {
-        #     'token': set( (url, docID, tf-idf) )
+        #     'token': list( (url, docID, frequency, tf-idf) )
+        #     'irvine': list( (ics.uci.edu, 0/0, 15, .123), (uci.edu, 3/5, 13, .123) )
         # }
-        self.inverted_index = defaultdict(set)
+        self.inverted_index = defaultdict(list)
 
         # container to temporarily store the word frequencies in each web page
         self.frequencies = dict()
+        # {
+        #   path : {'open': 11, 'source': 11, 'project': 11, 'slide': 1, '50': 1}
+        # }
+        self.book = bookkeeping_json
 
-    def insert(self, frequencies: dict):
+    def insert(self, path, frequencies: dict):
         """"""
-        pass
+        self.frequencies[path] = frequencies
 
+    def write_file(self):
+        pickle.dump(self.inverted_index, open("inverted_index", "wb"))
+
+    def build(self):
+        # for k,v in self.frequencies.items():
+        #     for k,v in v.items():
+        #         # do something
+        for path, freq in self.frequencies.items():
+            for token, fq in freq.items():
+                self.inverted_index[token].append( (self.book[path], path, fq, 0) )
+        # print(self.inverted_index)
+        self.write_file()

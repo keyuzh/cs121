@@ -20,10 +20,13 @@ class Corpus:
         """iterator that yields html from local corpus"""
         for path, url in self.bookkeeping.items():
             # split key by /
-            path = path.split('/')
-            directory = path[0]
-            file = path[1]
+            path_list = path.split('/')
+            directory = path_list[0]
+            file = path_list[1]
             file_path = self.path / directory / file
             with open(file_path, encoding='utf8') as f:
                 html_content = f.read()
-            yield (html_content, url)
+            yield (html_content, url, path)
+
+    def get_bookkeeping(self):
+        return self.bookkeeping
