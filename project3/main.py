@@ -10,4 +10,4 @@ if __name__ == '__main__':
     token = Tokenize()
 
     for html in corpus.feed_html():
-        print(token.get_lemmatized_token_frequencies(html['content']))
+        print(token.get_lemmatized_token_frequencies(html[0]))

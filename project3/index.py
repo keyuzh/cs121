@@ -19,8 +19,21 @@
 # • Indices of occurrence within the document
 # • Tf-idf score etc
 
+from collections import defaultdict
+
 class Index:
     def __init__(self):
-        pass
+        # inverted_index will be a dict of sets,
+        # the keys will be the tokens, values will be a set of tuples, storing the url, file path, and tf-idf score
+        # {
+        #     'token': set( (url, docID, tf-idf) )
+        # }
+        self.inverted_index = defaultdict(set)
 
+        # container to temporarily store the word frequencies in each web page
+        self.frequencies = dict()
+
+    def insert(self, frequencies: dict):
+        """"""
+        pass
 

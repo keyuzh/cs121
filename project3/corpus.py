@@ -26,4 +26,4 @@ class Corpus:
             file_path = self.path / directory / file
             with open(file_path, encoding='utf8') as f:
                 html_content = f.read()
-            yield dict(content=html_content, url=url)
+            yield (html_content, url)
