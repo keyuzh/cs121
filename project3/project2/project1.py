@@ -40,7 +40,7 @@ class WordFrequencies:
                 word = ''
         return tokens
 
-    def computeWordFrequencies(self, tokens: ['token'], frequencies: {'token': int}, stopwords: {str}):
+    def computeWordFrequencies(self, tokens: ['token'], frequencies: {'token': int}):
         """
         counts the number of occurrences of each token in the token list,
         returns a dict containing the count of each token
@@ -54,8 +54,8 @@ class WordFrequencies:
         #           words shorter than 3 character or contains all digits are ignored
         for token in tokens:
             # if the key is not in dict, dict.setdefault method initiates the value at 0
-            if token not in stopwords and len(token) >= 3 and not token.isdigit():
-                frequencies[token] = frequencies.setdefault(token, 0) + 1
+            # if token not in stopwords and len(token) >= 3 and not token.isdigit():
+            frequencies[token] = frequencies.setdefault(token, 0) + 1
 
     def print(self, frequencies: {'token': int}) -> [str]:
         """

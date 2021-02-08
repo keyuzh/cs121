@@ -15,6 +15,7 @@ from nltk import pos_tag
 from nltk.stem import WordNetLemmatizer
 from nltk.corpus import wordnet
 from project2.analytics import Analytics
+from project2.project1 import WordFrequencies
 from lxml import html
 
 
@@ -23,6 +24,7 @@ class Tokenize:
         self.lemmatizer = WordNetLemmatizer()
         self.p2_analytics = Analytics()
         self.stopword = self._get_stopwords("stopwords.txt")
+        self.wf = WordFrequencies()
 
     def _get_stopwords(self, file: str):
         with open(file, 'r') as f:
@@ -39,26 +41,74 @@ class Tokenize:
         return tag_dict.get(tag, wordnet.NOUN)
 
     def tokenize(self, text: str) -> ['tokens']:
-        # TODO: remove stop words and punctuations
         tokens = list()
-        for token in tokenize.word_tokenize(text):
+        # using default regex from https://www.nltk.org/_modules/nltk/tokenize/regexp.html
+        # TODO: find a better regex
+        # for token in tokenize.regexp_tokenize(text, pattern=r"\w+|\$[\d\.]+|\S+"):
+        for token in tokenize.regexp_tokenize(text, pattern=r"\w+"):
             # one letter words, punctuations, and stopwords are removed
             token = token.lower()
-            if len(token) == 1 or token in self.stopword:
-                continue
-            tokens.append(token)
+            if len(token) != 1 and token not in self.stopword:
+                tokens.append(token)
         return tokens
 
     def lemmatize(self, tokens: ['tokens']) -> ['tokens']:
         """lemmatize the given token, return list of lemmatized tokens"""
         return [self.lemmatizer.lemmatize(w, self.get_wordnet_pos(w)) for w in tokens]
 
-    def parse_html(self, content: str or bytes) -> str:
+    def tokenize_and_lemmatize(self, text: str) -> ['lemmatized_tokens']:
+        return self.lemmatize(self.tokenize(self.parse_html_text(text)))
+
+    def parse_html_text(self, content: str) -> str:
         """parse html string, return text in html"""
-        if isinstance(content, str):
-            content = bytes(content, encoding='utf8')
-        html_str = html.fromstring(content)
-        return self.p2_analytics._extract_text(html_str)
+        return self.p2_analytics._extract_text(content)
+
+    def get_lemmatized_token_frequencies(self, html_content: str or bytes) -> {'token': int}:
+        """given a html web page in str or bytes, return a dict of token frequencies"""
+        if isinstance(html_content, str):
+            html_content = bytes(html_content, encoding='utf8')
+        html_obj = html.fromstring(html_content)
+
+        frequencies = dict()
+        # first tokenize the web page as plain text
+        all_content = self.tokenize_and_lemmatize(html_obj)
+        self.wf.computeWordFrequencies(all_content, frequencies)
+        # TODO: handle special html tags
+        # tokenized special tags (again)
+        weighted_content = self.add_word_weights(html_obj)
+        self.wf.computeWordFrequencies(weighted_content, frequencies)
+        return frequencies
+
+    def add_word_weights(self, html_obj) -> ['tokens']:
+        """return an additional list of tokens, weights by html tags"""
+        weighted_token = list()
+        # find words in important tags, tokenize them as they have shown up multiple times in the text
+        for title in html_obj.findall('.//title'):
+            weighted_token += self.tokenize_and_lemmatize(title) * 10
+        for tag in html_obj.findall('.//h1'):
+            weighted_token += self.tokenize_and_lemmatize(tag) * 8
+        for tag in html_obj.findall('.//h2'):
+            weighted_token += self.tokenize_and_lemmatize(tag) * 7
+        for tag in html_obj.findall('.//h3'):
+            weighted_token += self.tokenize_and_lemmatize(tag) * 6
+        for tag in html_obj.findall('.//h4'):
+            weighted_token += self.tokenize_and_lemmatize(tag) * 5
+        for tag in html_obj.findall('.//h5'):
+            weighted_token += self.tokenize_and_lemmatize(tag) * 4
+        for tag in html_obj.findall('.//h6'):
+            weighted_token += self.tokenize_and_lemmatize(tag) * 3
+        for tag in html_obj.findall('.//b'):
+            weighted_token += self.tokenize_and_lemmatize(tag) * 2
+        for tag in html_obj.findall('.//strong'):
+            weighted_token += self.tokenize_and_lemmatize(tag) * 2
+        return weighted_token
+
+
+
+
+
+
+
 
 
     # # 2. Lemmatize Single Word with the appropriate POS tag
