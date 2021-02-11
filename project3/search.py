@@ -20,14 +20,14 @@ class Search:
         self.index = index
 
     def search_url(self, keyword):
-        if keyword in index.keys():
+        if keyword in self.index.keys():
             out_list = []
             for l in self.index[keyword]:
                 out_list.append(l[0])
             return out_list
 
     def search_length(self,keyword):
-        if keyword in index.keys():
+        if keyword in self.index.keys():
             return len(self.index[keyword])
 
 
@@ -39,8 +39,8 @@ if __name__ == '__main__':
         if(keyword == "quit"):
             break
         urls = search.search_url(keyword)
-        len = search.search_length(keyword)
-        print("Length:",len)
+        length = search.search_length(keyword)
+        print("Length:", length)
         print("Url:")
         for url in urls[:20]:
             print(url)

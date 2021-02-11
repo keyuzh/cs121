@@ -16,7 +16,7 @@ from nltk.stem import WordNetLemmatizer
 from nltk.corpus import wordnet
 from project2.analytics import Analytics
 from project2.project1 import WordFrequencies
-from lxml import html
+from lxml import html, etree
 
 
 class Tokenize:
@@ -67,7 +67,13 @@ class Tokenize:
         """given a html web page in str or bytes, return a dict of token frequencies"""
         if isinstance(html_content, str):
             html_content = bytes(html_content, encoding='utf8')
-        html_obj = html.fromstring(html_content)
+        try:
+            html_obj = html.fromstring(html_content)
+        except etree.ParserError:
+            # html.fromstring() raises this exception when the content is invalid
+            # e.g. http code is not 200; content encoding is not utf-8 and cannot decode;
+            #      content does not exist in corpus and therefore url_data['content'] is None;
+            return dict()
 
         frequencies = dict()
         # first tokenize the web page as plain text

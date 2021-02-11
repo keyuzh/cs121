@@ -13,8 +13,12 @@ if __name__ == '__main__':
     index = Index(corpus.get_bookkeeping())
     atexit.register(index.build)
 
+
+    num_fetched = 0
     for html in corpus.feed_html():
         fq = token.get_lemmatized_token_frequencies(html[0])
+        num_fetched += 1
+        print(num_fetched)
         # print(fq)
         index.insert(html[2], fq)
 
