@@ -21,6 +21,7 @@
 
 from collections import defaultdict
 import pickle
+import math
 
 class Index:
     def __init__(self, bookkeeping_json):
@@ -43,6 +44,15 @@ class Index:
         """"""
         self.frequencies[path] = frequencies
 
+    def calculate_tfidf(self):
+        total_documents = len(self.frequencies)  # N
+        for token, occurrences in self.inverted_index.items():
+            df = len(occurrences)
+            for occ in occurrences:
+                tf = occ[2]
+                tfidf = (1 + math.log(tf, 10)) * math.log(total_documents / df, 10)
+                occ[3] = tfidf
+
     def write_file(self):
         pickle.dump(self.inverted_index, open("inverted_index", "wb"))
 
@@ -52,6 +62,7 @@ class Index:
         #         # do something
         for path, freq in self.frequencies.items():
             for token, fq in freq.items():
-                self.inverted_index[token].append( (self.book[path], path, fq, 0) )
+                self.inverted_index[token].append( [self.book[path], path, fq, 0] )
+        self.calculate_tfidf()
         # print(self.inverted_index)
         self.write_file()
