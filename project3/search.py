@@ -26,11 +26,13 @@ class Search:
         self.index = index
 
     def search_url(self, keyword):
+        out_list = []
         if keyword in self.index.keys():
-            out_list = []
             for l in self.index[keyword]:
-                out_list.append(l[0])
-            return out_list
+                out_list.append((l[0], l[3]))
+
+        out_list.sort(key=(lambda x: -x[1]))
+        return out_list
 
     def search_length(self,keyword):
         if keyword in self.index.keys():
@@ -53,12 +55,13 @@ if __name__ == '__main__':
         print("Length:", length)
         print("Url:")
         for url in urls[:20]:
-            print(url)
+            print(url[0])
     """
     SearchEngine = QApplication(sys.argv)
     window = QMainWindow()
     window.setGeometry(200,200,1000,1000)
     window.setWindowTitle("CS 121 Search Engine")
+    window.setFixedSize(1000, 1000)
     textbox = QLineEdit(window)
     textbox.move(250,500)
     textbox.resize(500,40)
