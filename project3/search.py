@@ -14,6 +14,12 @@
 # • You may add other weighting/scoring mechanisms to help refine the search results
 
 import pickle
+import sys
+from PyQt5 import QtWidgets
+from PyQt5.QtWidgets import QApplication, QMainWindow,QLineEdit,QPushButton
+#https://pypi.org/project/PyQt5/
+#https://www.youtube.com/watch?v=Vde5SH8e1OQ&feature=emb_title
+
 
 class Search:
     def __init__(self, index:dict):
@@ -30,8 +36,12 @@ class Search:
         if keyword in self.index.keys():
             return len(self.index[keyword])
 
+def search_button_clicked():
+    pass
+
 
 if __name__ == '__main__':
+    """
     inverted_index = pickle.load(open("inverted_index","rb"))
     search = Search(inverted_index)
     while True:
@@ -44,3 +54,19 @@ if __name__ == '__main__':
         print("Url:")
         for url in urls[:20]:
             print(url)
+    """
+    SearchEngine = QApplication(sys.argv)
+    window = QMainWindow()
+    window.setGeometry(200,200,1000,1000)
+    window.setWindowTitle("CS 121 Search Engine")
+    textbox = QLineEdit(window)
+    textbox.move(250,500)
+    textbox.resize(500,40)
+    button = QPushButton("Search",window)
+    button.move(450,550)
+    window.show()
+    sys.exit(SearchEngine.exec_())
+
+
+
+
