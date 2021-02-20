@@ -16,7 +16,8 @@
 import pickle
 import sys
 from PyQt5 import QtWidgets
-from PyQt5.QtWidgets import QApplication, QMainWindow,QLineEdit,QPushButton
+from PyQt5.QtWidgets import QApplication, QMainWindow,QLineEdit,QPushButton,QLabel
+from PyQt5.QtGui import QPixmap
 #https://pypi.org/project/PyQt5/
 #https://www.youtube.com/watch?v=Vde5SH8e1OQ&feature=emb_title
 
@@ -61,7 +62,13 @@ if __name__ == '__main__':
     window = QMainWindow()
     window.setGeometry(200,200,1000,1000)
     window.setWindowTitle("CS 121 Search Engine")
+    window.setStyleSheet("background-color: white;")
     window.setFixedSize(1000, 1000)
+    load_logo = QPixmap('guiLogo.png')
+    logo = QLabel(window)
+    logo.setPixmap(load_logo)
+    logo.resize(load_logo.width(),load_logo.height())
+    logo.move(200,200)
     textbox = QLineEdit(window)
     textbox.move(250,500)
     textbox.resize(500,40)
