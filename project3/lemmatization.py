@@ -9,6 +9,7 @@
 
 # Words in title, bold and heading (h1, h2, h3) tags are more important than the other words. You should store meta-data
 # about their importance to be used later in the retrieval phase.
+from collections import defaultdict
 
 from nltk import tokenize
 from nltk import pos_tag
@@ -63,7 +64,7 @@ class Tokenize:
         """parse html string, return text in html"""
         return self.p2_analytics._extract_text(content)
 
-    def get_lemmatized_token_frequencies(self, html_content: str or bytes) -> {'token': int}:
+    def get_lemmatized_token_frequencies(self, html_content: str or bytes) -> ({'token': int}, {'token': {'positions'}}):
         """given a html web page in str or bytes, return a dict of token frequencies"""
         if isinstance(html_content, str):
             html_content = bytes(html_content, encoding='utf8')
@@ -73,41 +74,48 @@ class Tokenize:
             # html.fromstring() raises this exception when the content is invalid
             # e.g. http code is not 200; content encoding is not utf-8 and cannot decode;
             #      content does not exist in corpus and therefore url_data['content'] is None;
-            return dict()
-
+            return dict(), dict()
         frequencies = dict()
         # first tokenize the web page as plain text
         all_content = self.tokenize_and_lemmatize(html_obj)
         self.wf.computeWordFrequencies(all_content, frequencies)
         # TODO: handle special html tags
-        # tokenized special tags (again)
-        weighted_content = self.add_word_weights(html_obj)
-        self.wf.computeWordFrequencies(weighted_content, frequencies)
-        return frequencies
+        # tokenize special tags (again)
+        positions = self.tag_position(html_obj)
+        return frequencies, positions
 
-    def add_word_weights(self, html_obj) -> ['tokens']:
+    def tag_position(self, html_obj) -> {'tokens': {'positions'}}:
         """return an additional list of tokens, weights by html tags"""
-        weighted_token = list()
+        positions = defaultdict(set)
         # find words in important tags, tokenize them as they have shown up multiple times in the text
         for title in html_obj.findall('.//title'):
-            weighted_token += self.tokenize_and_lemmatize(title) * 10
+            for token in self.tokenize_and_lemmatize(title):
+                positions[token].add('title')
         for tag in html_obj.findall('.//h1'):
-            weighted_token += self.tokenize_and_lemmatize(tag) * 8
+            for token in self.tokenize_and_lemmatize(tag):
+                positions[token].add('h1')
         for tag in html_obj.findall('.//h2'):
-            weighted_token += self.tokenize_and_lemmatize(tag) * 7
+            for token in self.tokenize_and_lemmatize(tag):
+                positions[token].add('h2')
         for tag in html_obj.findall('.//h3'):
-            weighted_token += self.tokenize_and_lemmatize(tag) * 6
+            for token in self.tokenize_and_lemmatize(tag):
+                positions[token].add('h3')
         for tag in html_obj.findall('.//h4'):
-            weighted_token += self.tokenize_and_lemmatize(tag) * 5
+            for token in self.tokenize_and_lemmatize(tag):
+                positions[token].add('h4')
         for tag in html_obj.findall('.//h5'):
-            weighted_token += self.tokenize_and_lemmatize(tag) * 4
+            for token in self.tokenize_and_lemmatize(tag):
+                positions[token].add('h5')
         for tag in html_obj.findall('.//h6'):
-            weighted_token += self.tokenize_and_lemmatize(tag) * 3
+            for token in self.tokenize_and_lemmatize(tag):
+                positions[token].add('h6')
         for tag in html_obj.findall('.//b'):
-            weighted_token += self.tokenize_and_lemmatize(tag) * 2
+            for token in self.tokenize_and_lemmatize(tag):
+                positions[token].add('b')
         for tag in html_obj.findall('.//strong'):
-            weighted_token += self.tokenize_and_lemmatize(tag) * 2
-        return weighted_token
+            for token in self.tokenize_and_lemmatize(tag):
+                positions[token].add('strong')
+        return positions
 
 
 

@@ -16,10 +16,14 @@ if __name__ == '__main__':
 
     num_fetched = 0
     for html in corpus.feed_html():
-        fq = token.get_lemmatized_token_frequencies(html[0])
+        fq, pos = token.get_lemmatized_token_frequencies(html[0])
         num_fetched += 1
         print(num_fetched)
         # print(fq)
-        index.insert(html[2], fq)
+        index.insert(html[2], fq, pos)
+    #     if num_fetched > 10:
+    #         break
+    #
+    # index.build()
 
 

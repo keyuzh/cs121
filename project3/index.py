@@ -25,6 +25,7 @@ import math
 
 class Index:
     def __init__(self, bookkeeping_json):
+        self.book = bookkeeping_json
         # inverted_index will be a dict of sets,
         # the keys will be the tokens, values will be a set of tuples, storing the url, file path, and tf-idf score
         # {
@@ -38,11 +39,17 @@ class Index:
         # {
         #   path : {'open': 11, 'source': 11, 'project': 11, 'slide': 1, '50': 1}
         # }
-        self.book = bookkeeping_json
 
-    def insert(self, path, frequencies: dict):
+        # stores what position that the given word appears
+        self.positions = dict()
+        # {
+        #   path : {'open': {'title', h1}, 'source': {'title', 'h2'} }
+        # }
+
+    def insert(self, path, frequencies: dict, positions: dict):
         """"""
         self.frequencies[path] = frequencies
+        self.positions[path] = positions
 
     def calculate_tfidf(self):
         total_documents = len(self.frequencies)  # N
@@ -55,6 +62,7 @@ class Index:
 
     def write_file(self):
         pickle.dump(self.inverted_index, open("inverted_index", "wb"))
+        # pickle.dump(self.positions, open("inverted_index", "wb"))
 
     def build(self):
         # for k,v in self.frequencies.items():
@@ -62,7 +70,11 @@ class Index:
         #         # do something
         for path, freq in self.frequencies.items():
             for token, fq in freq.items():
-                self.inverted_index[token].append( [self.book[path], path, fq, 0] )
+                pos = set()
+                if token in self.positions[path].keys():
+                    pos = self.positions[path][token]
+                # print(pos)
+                self.inverted_index[token].append( [self.book[path], path, fq, 0, pos] )
         self.calculate_tfidf()
         # print(self.inverted_index)
         self.write_file()
