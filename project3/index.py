@@ -29,8 +29,8 @@ class Index:
         # inverted_index will be a dict of sets,
         # the keys will be the tokens, values will be a set of tuples, storing the url, file path, and tf-idf score
         # {
-        #     'token': list( (url, docID, frequency, tf-idf) )
-        #     'irvine': list( (ics.uci.edu, 0/0, 15, .123), (uci.edu, 3/5, 13, .123) )
+        #     'token': list( [url, docID, frequency, tf-idf, pos] )
+        #     'irvine': list( [ics.uci.edu, 0/0, 15, .123, {'title'}], [uci.edu, 3/5, 13, .123, {'h1'}] )
         # }
         self.inverted_index = defaultdict(list)
 
