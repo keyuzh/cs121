@@ -24,7 +24,8 @@ import pickle
 import math
 
 class Index:
-    def __init__(self, bookkeeping_json):
+    def __init__(self, bookkeeping_json, filename="inverted_index"):
+        self.filename = filename
         self.book = bookkeeping_json
         # inverted_index will be a dict of sets,
         # the keys will be the tokens, values will be a set of tuples, storing the url, file path, and tf-idf score
@@ -46,7 +47,7 @@ class Index:
         #   path : {'open': {'title', h1}, 'source': {'title', 'h2'} }
         # }
 
-    def insert(self, path, frequencies: dict, positions: dict):
+    def insert(self, path, frequencies: dict, positions=dict()):
         """"""
         self.frequencies[path] = frequencies
         self.positions[path] = positions
@@ -61,7 +62,7 @@ class Index:
                 occ[3] = tfidf
 
     def write_file(self):
-        pickle.dump(self.inverted_index, open("inverted_index", "wb"))
+        pickle.dump(self.inverted_index, open(self.filename, "wb"))
         # pickle.dump(self.positions, open("inverted_index", "wb"))
 
     def build(self):

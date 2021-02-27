@@ -84,6 +84,23 @@ class Tokenize:
         positions = self.tag_position(html_obj)
         return frequencies, positions
 
+    def get_bi_gram_frequencies(self, html_content: str or bytes) -> {'token': int}:
+        """given a html web page in str or bytes, return a dict of token frequencies"""
+        if isinstance(html_content, str):
+            html_content = bytes(html_content, encoding='utf8')
+        try:
+            html_obj = html.fromstring(html_content)
+        except etree.ParserError:
+            # html.fromstring() raises this exception when the content is invalid
+            # e.g. http code is not 200; content encoding is not utf-8 and cannot decode;
+            #      content does not exist in corpus and therefore url_data['content'] is None;
+            return dict()
+        frequencies = dict()
+        # first tokenize the web page as plain text
+        all_content = self.tokenize_and_lemmatize(html_obj)
+        self.wf.computeWordFrequencies(all_content, frequencies, True)
+        return frequencies
+
     def tag_position(self, html_obj) -> {'tokens': {'positions'}}:
         """return an additional list of tokens, weights by html tags"""
         positions = defaultdict(set)

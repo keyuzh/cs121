@@ -40,7 +40,7 @@ class WordFrequencies:
                 word = ''
         return tokens
 
-    def computeWordFrequencies(self, tokens: ['token'], frequencies: {'token': int}):
+    def computeWordFrequencies(self, tokens: ['token'], frequencies: {'token': int}, bi_gram=False):
         """
         counts the number of occurrences of each token in the token list,
         returns a dict containing the count of each token
@@ -52,10 +52,18 @@ class WordFrequencies:
         # project2: update this method to take existing dict as parameter and modify it
         #           additionally, stopwords are not inserted in the dict;
         #           words shorter than 3 character or contains all digits are ignored
+        # project3: count bi-grams
+        prev_word = None
         for token in tokens:
+            if prev_word is None:
+                # skip first word
+                prev_word = token
+                continue
             # if the key is not in dict, dict.setdefault method initiates the value at 0
             # if token not in stopwords and len(token) >= 3 and not token.isdigit():
-            frequencies[token] = frequencies.setdefault(token, 0) + 1
+            word = prev_word + " " + token
+            frequencies[word] = frequencies.setdefault(word, 0) + 1
+            prev_word = token
 
     def print(self, frequencies: {'token': int}) -> [str]:
         """
