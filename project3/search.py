@@ -39,8 +39,42 @@ class Search:
         if keyword in self.index.keys():
             return len(self.index[keyword])
 
-def search_button_clicked():
+def search_button_clicked(textbox):
+    print("button clicked")
+    print(textbox.text())
+    """
+    window = QMainWindow()
+    window.setGeometry(200,200,1000,1000)
+    window.setWindowTitle("CS 121 Search Engine")
+    window.setStyleSheet("background-color: white;")
+    window.setFixedSize(1000, 1000)
+    """
     pass
+
+def home_page(SearchEngine):
+    #Initialize the window
+    window = QMainWindow()
+    window.setGeometry(200,200,1000,1000)
+    window.setWindowTitle("CS 121 Search Engine")
+    window.setStyleSheet("background-color: white;")
+    window.setFixedSize(1000, 1000)
+    #Setup the Logo
+    load_logo = QPixmap('guiLogo.png')
+    logo = QLabel(window)
+    logo.setPixmap(load_logo)
+    logo.resize(load_logo.width(),load_logo.height())
+    logo.move(200,200)
+    #For textbox input
+    textbox = QLineEdit(window)
+    textbox.move(250,500)
+    textbox.resize(500,40)
+    #Create Search button
+    button = QPushButton("Search",window)
+    button.clicked.connect(search_button_clicked)
+    button.move(450,550)
+    #Display window
+    window.show()
+    sys.exit(SearchEngine.exec_())
 
 
 if __name__ == '__main__':
@@ -59,23 +93,7 @@ if __name__ == '__main__':
             print(url[0])
     """
     SearchEngine = QApplication(sys.argv)
-    window = QMainWindow()
-    window.setGeometry(200,200,1000,1000)
-    window.setWindowTitle("CS 121 Search Engine")
-    window.setStyleSheet("background-color: white;")
-    window.setFixedSize(1000, 1000)
-    load_logo = QPixmap('guiLogo.png')
-    logo = QLabel(window)
-    logo.setPixmap(load_logo)
-    logo.resize(load_logo.width(),load_logo.height())
-    logo.move(200,200)
-    textbox = QLineEdit(window)
-    textbox.move(250,500)
-    textbox.resize(500,40)
-    button = QPushButton("Search",window)
-    button.move(450,550)
-    window.show()
-    sys.exit(SearchEngine.exec_())
+    home_page(SearchEngine)
 
 
 
