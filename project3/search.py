@@ -23,8 +23,13 @@ from PyQt5.QtGui import QPixmap
 
 
 class Search:
-    def __init__(self, index:dict):
+    def __init__(self, index:dict, se):
         self.index = index
+        self.SearchEngine = se
+        self.window = None
+        self.logo = None
+        self.textbox = None
+        self.button = None
 
     def search_url(self, keyword):
         out_list = []
@@ -39,42 +44,42 @@ class Search:
         if keyword in self.index.keys():
             return len(self.index[keyword])
 
-def search_button_clicked(textbox):
-    print("button clicked")
-    print(textbox.text())
-    """
-    window = QMainWindow()
-    window.setGeometry(200,200,1000,1000)
-    window.setWindowTitle("CS 121 Search Engine")
-    window.setStyleSheet("background-color: white;")
-    window.setFixedSize(1000, 1000)
-    """
-    pass
+    def search_button_clicked(self, textbox):
+        print("button clicked")
+        print(self.textbox.text())
+        """
+        window = QMainWindow()
+        window.setGeometry(200,200,1000,1000)
+        window.setWindowTitle("CS 121 Search Engine")
+        window.setStyleSheet("background-color: white;")
+        window.setFixedSize(1000, 1000)
+        """
+        pass
 
-def home_page(SearchEngine):
-    #Initialize the window
-    window = QMainWindow()
-    window.setGeometry(200,200,1000,1000)
-    window.setWindowTitle("CS 121 Search Engine")
-    window.setStyleSheet("background-color: white;")
-    window.setFixedSize(1000, 1000)
-    #Setup the Logo
-    load_logo = QPixmap('guiLogo.png')
-    logo = QLabel(window)
-    logo.setPixmap(load_logo)
-    logo.resize(load_logo.width(),load_logo.height())
-    logo.move(200,200)
-    #For textbox input
-    textbox = QLineEdit(window)
-    textbox.move(250,500)
-    textbox.resize(500,40)
-    #Create Search button
-    button = QPushButton("Search",window)
-    button.clicked.connect(search_button_clicked)
-    button.move(450,550)
-    #Display window
-    window.show()
-    sys.exit(SearchEngine.exec_())
+    def home_page(self):
+        #Initialize the window
+        self.window = QMainWindow()
+        self.window.setGeometry(200,200,1000,1000)
+        self.window.setWindowTitle("CS 121 Search Engine")
+        self.window.setStyleSheet("background-color: white;")
+        self.window.setFixedSize(1000, 1000)
+        #Setup the Logo
+        load_logo = QPixmap('guiLogo.png')
+        self.logo = QLabel(self.window)
+        self.logo.setPixmap(load_logo)
+        self.logo.resize(load_logo.width(),load_logo.height())
+        self.logo.move(200,200)
+        #For textbox input
+        self.textbox = QLineEdit(self.window)
+        self.textbox.move(250,500)
+        self.textbox.resize(500,40)
+        #Create Search button
+        self.button = QPushButton("Search",self.window)
+        self.button.clicked.connect(self.search_button_clicked)
+        self.button.move(450,550)
+        #Display window
+        self.window.show()
+        sys.exit(self.SearchEngine.exec_())
 
 
 if __name__ == '__main__':
@@ -92,8 +97,10 @@ if __name__ == '__main__':
         for url in urls[:20]:
             print(url[0])
     """
-    SearchEngine = QApplication(sys.argv)
-    home_page(SearchEngine)
+    se = QApplication(sys.argv)
+    inverted_index = pickle.load(open("inverted_index","rb"))
+    search = Search(inverted_index, se)
+    search.home_page()
 
 
 
