@@ -32,13 +32,32 @@ class Search:
         self.button = None
 
     def search_url(self, keyword):
-        out_list = []
+        '''out_list = []
         if keyword in self.index.keys():
             for l in self.index[keyword]:
                 out_list.append((l[0], l[3]))
 
         out_list.sort(key=(lambda x: -x[1]))
-        return out_list
+        return out_list'''
+        word_frequency = self.word_fq(keyword)
+        try:
+            inverted_index = pickle.load(open("inverted_index","rb"))
+            normalized_tf = pickle.load(open("normalized_tf","wb"))
+        except:
+            print("Failed to load file")
+        
+
+        
+    #find word frequency in query
+    def word_fq (self, word):
+        query_token = self.keyword.split()
+        query_dict = dict()
+        for w in query_token:
+            if w not in query_dict:
+                query_dict[w] = 1
+            else:
+                query_dict[w] += 1
+        return query_dict
 
     def search_length(self,keyword):
         if keyword in self.index.keys():
@@ -47,6 +66,8 @@ class Search:
     def search_button_clicked(self, textbox):
         print("button clicked")
         print(self.textbox.text())
+        #return a list of urls
+        urls = self.search_url()
         """
         window = QMainWindow()
         window.setGeometry(200,200,1000,1000)
