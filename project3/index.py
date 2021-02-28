@@ -46,6 +46,18 @@ class Index:
         # {
         #   path : {'open': {'title', h1}, 'source': {'title', 'h2'} }
         # }
+        self.tfidf = dict()
+        # {
+        #     path : {'word': normalized_tfidf}
+        # }
+
+    def normalize_tf(self):
+        for doc in self.frequencies.values():
+            for word, freq in doc.items():
+                doc[word] = 1 + math.log(doc[word], 10)
+            tf_factor = math.sqrt(sum([tf**2 for tf in doc.values()]))
+            for word, freq in doc.items():
+                doc[word] = doc[word] / tf_factor
 
     def insert(self, path, frequencies: dict, positions=dict()):
         """"""
@@ -63,12 +75,13 @@ class Index:
 
     def write_file(self):
         pickle.dump(self.inverted_index, open(self.filename, "wb"))
-        # pickle.dump(self.positions, open("inverted_index", "wb"))
+        pickle.dump(self.frequencies, open("normalized_tf", "wb"))
 
     def build(self):
         # for k,v in self.frequencies.items():
         #     for k,v in v.items():
         #         # do something
+        self.normalize_tf()
         for path, freq in self.frequencies.items():
             for token, fq in freq.items():
                 pos = set()

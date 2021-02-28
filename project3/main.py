@@ -14,7 +14,7 @@ if __name__ == '__main__':
     index = Index(corpus.get_bookkeeping())
     if not DEBUG:
         atexit.register(index.build)
-    bi_gram = True
+    bi_gram = False
 
 
     num_fetched = 0
@@ -31,13 +31,13 @@ if __name__ == '__main__':
                 break
     else:
         for html in corpus.feed_html():
-            fq, pos = token.get_lemmatized_token_frequencies(html[0], bi_gram)
+            fq, pos = token.get_lemmatized_token_frequencies(html[0])
             num_fetched += 1
             print(num_fetched)
             # print(fq)
             index.insert(html[2], fq, pos)
-    #     if num_fetched > 10:
-    #         break
+            if DEBUG and num_fetched > 10:
+                break
     #
     if DEBUG:
         index.build()
