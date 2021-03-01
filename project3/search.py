@@ -17,6 +17,8 @@ import pickle
 import sys
 import math
 import itertools
+from collections import defaultdict
+
 from PyQt5 import QtWidgets
 from PyQt5.QtWidgets import QApplication, QMainWindow,QLineEdit,QPushButton,QLabel
 from PyQt5.QtGui import QPixmap
@@ -55,13 +57,13 @@ class Search:
         print("After cosine similarity: ")
         for doc, score in doc_score.items():
             print (doc,score)
-        return sorted(doc_score.items(),key=lambda x:x[1])[:K]
+        return sorted(doc_score.items(),key=lambda x:-x[1])[:K]
         # return dict(itertools.islice(doc_score.items(),K))
 
     # Return a dict() with
     # token = DocID, value = score
     def calculate_cosine_similarity(self,word_frequency):
-        doc_score = dict()
+        doc_score = defaultdict(int)
         for qword,qnorm in word_frequency.items():
             for did, doc in self.normalized_tf.items():
                 if qword in doc.keys(): # word in the document
@@ -76,7 +78,7 @@ class Search:
         total_documents = len(self.normalized_tf)
         query_length = 0
         for word, freq in word_frequency.items():
-            print(self.index.keys())
+            # print(self.index.keys())
             #if word in index -> calculate tfidf
             if word in self.index.keys():
                 print("In index")
