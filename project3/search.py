@@ -55,8 +55,8 @@ class Search:
         print("After cosine similarity: ")
         for doc, score in doc_score.items():
             print (doc,score)
-        sorted(doc_score.items(),key=lambda x:x[1])
-        return dict(itertools.islice(doc_score.items(),K))
+        return sorted(doc_score.items(),key=lambda x:x[1])[:K]
+        # return dict(itertools.islice(doc_score.items(),K))
 
     # Return a dict() with
     # token = DocID, value = score
@@ -76,10 +76,11 @@ class Search:
         total_documents = len(self.normalized_tf)
         query_length = 0
         for word, freq in word_frequency.items():
+            print(self.index.keys())
             #if word in index -> calculate tfidf
             if word in self.index.keys():
                 print("In index")
-                df = len(index[word])
+                df = len(self.index[word])
                 word_frequency[word] = 1+math.log(freq,10) * math.log(total_documents/df,10)
                 query_length += word_frequency[word]**2
             # else tfidf = 0
@@ -89,7 +90,7 @@ class Search:
         query_length = math.sqrt(query_length)
         for word, freq in word_frequency.items():
             if freq != 0:
-                freq = freq / query_length
+                word_frequency[word] = freq / query_length
         return word_frequency
         
     #find word frequency in query

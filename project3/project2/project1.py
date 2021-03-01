@@ -55,13 +55,16 @@ class WordFrequencies:
         # project3: count bi-grams
         prev_word = None
         for token in tokens:
-            if prev_word is None:
+            if bi_gram and prev_word is None:
                 # skip first word
                 prev_word = token
                 continue
             # if the key is not in dict, dict.setdefault method initiates the value at 0
             # if token not in stopwords and len(token) >= 3 and not token.isdigit():
-            word = prev_word + " " + token
+            if bi_gram:
+                word = prev_word + " " + token
+            else:
+                word = token
             frequencies[word] = frequencies.setdefault(word, 0) + 1
             prev_word = token
 
