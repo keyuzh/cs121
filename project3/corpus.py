@@ -2,6 +2,7 @@ import json
 import sys
 from pathlib import Path
 
+import lxml.html
 
 
 class Corpus:
@@ -19,14 +20,29 @@ class Corpus:
     def feed_html(self) -> dict:
         """iterator that yields html from local corpus"""
         for path, url in self.bookkeeping.items():
-            # split key by /
-            path_list = path.split('/')
-            directory = path_list[0]
-            file = path_list[1]
-            file_path = self.path / directory / file
-            with open(file_path, encoding='utf8') as f:
-                html_content = f.read()
+            html_content = self.get_html(path)
             yield (html_content, url, path)
+
+    def get_html(self, path: str) -> str:
+        with self.get_file(path) as f:
+            return f.read()
+
+    def get_file(self, path) -> open:
+        path_list = path.split('/')
+        directory = path_list[0]
+        file = path_list[1]
+        file_path = self.path / directory / file
+        return open(file_path, encoding='utf8')
+
 
     def get_bookkeeping(self):
         return self.bookkeeping
+
+    def get_url(self, path: str) -> str:
+        """get the url of the webpage given the path"""
+        return self.bookkeeping[path]
+
+    def get_title(self, path: str) -> str:
+        #https://stackoverflow.com/questions/51233/how-can-i-retrieve-the-page-title-of-a-webpage-using-python
+        t = lxml.html.parse(self.get_file(path))
+        return t.find(".//title").text

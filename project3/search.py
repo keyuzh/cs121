@@ -24,10 +24,12 @@ from PyQt5.QtWidgets import QApplication, QMainWindow,QLineEdit,QPushButton,QLab
 from PyQt5.QtGui import QPixmap
 #https://pypi.org/project/PyQt5/
 #https://www.youtube.com/watch?v=Vde5SH8e1OQ&feature=emb_title
+from corpus import Corpus
 
 
 class Search:
     def __init__(self, index:dict, normalized_tf:dict, se):
+        self.corpus = Corpus("./WEBPAGES_RAW")
         self.index = index
         self.normalized_tf = normalized_tf
         self.SearchEngine = se
@@ -117,7 +119,8 @@ class Search:
         urls = self.search_url(self.textbox.text(),20)
         print("Finished.\nResult:")
         for doc, score in urls:
-            print(doc,score)
+            print(self.corpus.get_url(doc), score)
+            print("Title:", self.corpus.get_title(doc), sep=' ')
         """
         window = QMainWindow()
         window.setGeometry(200,200,1000,1000)
