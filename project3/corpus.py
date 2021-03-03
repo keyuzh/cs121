@@ -45,4 +45,7 @@ class Corpus:
     def get_title(self, path: str) -> str:
         #https://stackoverflow.com/questions/51233/how-can-i-retrieve-the-page-title-of-a-webpage-using-python
         t = lxml.html.parse(self.get_file(path))
-        return t.find(".//title").text
+        try:
+            return t.find(".//title").text
+        except:
+            return ""

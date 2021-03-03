@@ -12,20 +12,59 @@
 # • the cosine similarity method. Feel free to use a library to compute cosine similarity once you
 # have the term frequencies and inverse document frequencies.
 # • You may add other weighting/scoring mechanisms to help refine the search results
-
+import os
 import pickle
 import sys
 import math
+import webbrowser
 import itertools
 from collections import defaultdict
+from pathlib import Path
 
 from PyQt5 import QtWidgets
-from PyQt5.QtWidgets import QApplication, QMainWindow,QLineEdit,QPushButton,QLabel
+from PyQt5.QtWidgets import QApplication, QMainWindow,QLineEdit,QPushButton,QLabel, QWidget, QVBoxLayout
 from PyQt5.QtGui import QPixmap
 #https://pypi.org/project/PyQt5/
 #https://www.youtube.com/watch?v=Vde5SH8e1OQ&feature=emb_title
 from corpus import Corpus
 
+
+class ResultWindow(QWidget):
+    # https://www.learnpyqt.com/tutorials/creating-multiple-windows/
+    """
+    This "window" is a QWidget. If it has no parent,
+    it will appear as a free-floating window.
+    """
+
+    def __init__(self, query, result, corpus_path):
+        super().__init__()
+        self.layout = QVBoxLayout()
+        self.setWindowTitle(f"Results for {query}")
+        self.setLayout(self.layout)
+        self.result = result
+        self.path = os.path.abspath(corpus_path)
+        self.corpus = Corpus(corpus_path)
+
+    def show(self) -> None:
+        def wrapper(url):
+            def open_in_webbrowser():
+                webbrowser.open(url)
+            return open_in_webbrowser
+
+        for path in self.result:
+            test = QLabel()
+            local_link = os.path.join(self.path, path)
+            print(local_link)
+            button = QPushButton(self.corpus.get_title(path), self)
+            button.clicked.connect(wrapper(local_link))
+            url = self.corpus.get_url(path)
+            test.setText(f"<a href=\"http://{url}\">{url}</a>")
+            test.setOpenExternalLinks(True)
+            self.layout.addWidget(button)
+            self.layout.addWidget(test)
+            self.layout.addSpacing(10)
+
+        super().show()
 
 class Search:
     def __init__(self, index:dict, normalized_tf:dict, se):
@@ -37,6 +76,7 @@ class Search:
         self.logo = None
         self.textbox = None
         self.button = None
+        self.result_window = None
 
     #search return at most K urls where K = 20 in this case
     def search_url(self, keyword,K):
@@ -61,6 +101,14 @@ class Search:
             print (doc,score)
         return sorted(doc_score.items(),key=lambda x:-x[1])[:K]
         # return dict(itertools.islice(doc_score.items(),K))
+
+    def multi_query(self, multi_word, K):
+        url_lst = []
+
+        for word in multi_word.split():
+            for doc_and_score in self.search_url(word, K):
+                url_lst.append(doc_and_score)
+        return sorted(url_lst, key=lambda x: -x[1])[:K]
 
     # Return a dict() with
     # token = DocID, value = score
@@ -113,14 +161,17 @@ class Search:
             return len(self.index[keyword])
 
     def search_button_clicked(self, textbox):
+        query = self.textbox.text()
         print("Seaching...")
-        print(self.textbox.text())
+        print(query)
         #return a list of urls
-        urls = self.search_url(self.textbox.text(),20)
+        urls = self.search_url(query,20)
         print("Finished.\nResult:")
         for doc, score in urls:
             print(self.corpus.get_url(doc), score)
             print("Title:", self.corpus.get_title(doc), sep=' ')
+        self.result_window = ResultWindow(query, [i[0] for i in urls], "./WEBPAGES_RAW")
+        self.result_window.show()
         """
         window = QMainWindow()
         window.setGeometry(200,200,1000,1000)
