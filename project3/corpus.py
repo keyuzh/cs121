@@ -1,3 +1,11 @@
+# corpus.py
+# CS121 Winter 2021 Project 3
+# Group: 6
+# Name: Keyu Zhang, Chak Wah Lo, Emanuel Lopez
+# UCINetID: keyuz4, cwlo1, emanuel1
+
+"""retrieve information from corpus"""
+
 import json
 from pathlib import Path
 
@@ -20,7 +28,7 @@ class Corpus:
         """generator that yields html from local corpus"""
         for path, url in self.bookkeeping.items():
             html_content = self.get_html(path)
-            yield (html_content, url, path)
+            yield html_content, url, path
 
     def get_html(self, path: str) -> str:
         """retrieve the webpage html from corpus and return the content as string"""
@@ -29,9 +37,6 @@ class Corpus:
 
     def get_file(self, path) -> open:
         """retrieve the webpage as an open file"""
-        # path_list = path.split('/')
-        # directory = path_list[0]
-        # file = path_list[1]
         file_path = self.path / path
         return open(file_path, encoding='utf8')
 

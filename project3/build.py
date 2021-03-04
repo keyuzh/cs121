@@ -1,3 +1,11 @@
+# build.py
+# CS121 Winter 2021 Project 3
+# Group: 6
+# Name: Keyu Zhang, Chak Wah Lo, Emanuel Lopez
+# UCINetID: keyuz4, cwlo1, emanuel1
+
+"""builds the inverted index and save useful data for search"""
+
 import atexit
 import getopt
 import sys
@@ -9,7 +17,7 @@ from lemmatization import Tokenize
 DEFAULT_CORPUS_POSITION = "./WEBPAGES_RAW"
 
 
-def parse_arguments(args):
+def parse_arguments(args) -> (str, bool):
     path = DEFAULT_CORPUS_POSITION
     bi = False
     # https://www.geeksforgeeks.org/command-line-arguments-in-python/
@@ -18,7 +26,7 @@ def parse_arguments(args):
     # Options
     options = "bc:"
     # Long options
-    long_options = ["corpus =", "bigram"]
+    long_options = ["corpus=", "bigram"]
     try:
         # Parsing argument
         arguments, values = getopt.getopt(argument_list, options, long_options)
@@ -37,6 +45,7 @@ def parse_arguments(args):
 if __name__ == '__main__':
     # initialize objects
     corpus_path, bi_gram = parse_arguments(sys.argv)
+    print(corpus_path)
     corpus = Corpus(corpus_path)
     token = Tokenize()
     index = Index(corpus.get_bookkeeping(), bi_gram)

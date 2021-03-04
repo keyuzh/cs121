@@ -1,3 +1,11 @@
+# cli.py
+# CS121 Winter 2021 Project 3
+# Group: 6
+# Name: Keyu Zhang, Chak Wah Lo, Emanuel Lopez
+# UCINetID: keyuz4, cwlo1, emanuel1
+
+"""command line interface"""
+
 import time
 
 from corpus import Corpus
@@ -20,6 +28,8 @@ class CLI:
         print(f"{query}: {num_results} results ({search_time:.4f} seconds)")
         print(f"Showing top {min(20, num_results)} results")
         print()
+        if num_results == 0:
+            print("No Results found. Did you enter a stop word or make a typo?")
 
         for index, path in enumerate(paths):
             num = index + 1

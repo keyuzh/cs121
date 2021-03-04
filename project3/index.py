@@ -4,11 +4,11 @@
 # Name: Keyu Zhang, Chak Wah Lo, Emanuel Lopez
 # UCINetID: keyuz4, cwlo1, emanuel1
 
-# construct inverted index with key=token, value=where the token occur; TF-IDF, etc
+"""construct inverted index with key=token, value=where the token occur; TF-IDF, etc"""
 
-from collections import defaultdict
-import pickle
 import math
+import pickle
+from collections import defaultdict
 from pathlib import Path
 
 

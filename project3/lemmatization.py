@@ -4,8 +4,10 @@
 # Name: Keyu Zhang, Chak Wah Lo, Emanuel Lopez
 # UCINetID: keyuz4, cwlo1, emanuel1
 
-# parse a html web page, fix it if its broken, tokenize the words with lemmatization, calculate TF-IDF scores
-# for each token,
+"""
+parse a html web page, fix it if its broken, tokenize the words with lemmatization,
+calculate TF-IDF scores for each token,
+"""
 
 from collections import defaultdict
 
@@ -18,26 +20,34 @@ from project2.analytics import Analytics
 from project2.project1 import WordFrequencies
 
 
+def _get_stopwords(file: str):
+    with open(file, 'r') as f:
+        return eval(f.read())
+
+
+def get_wordnet_pos(word):
+    """Map POS tag to first character lemmatize() accepts"""
+    # https://www.machinelearningplus.com/nlp/lemmatization-examples-python/#wordnetlemmatizer
+    tag = pos_tag([word])[0][1][0].upper()
+    tag_dict = {"J": wordnet.ADJ,
+                "N": wordnet.NOUN,
+                "V": wordnet.VERB,
+                "R": wordnet.ADV}
+    return tag_dict.get(tag, wordnet.NOUN)
+
+
+def get_html_object(html_content):
+    if isinstance(html_content, str):
+        html_content = bytes(html_content, encoding='utf8')
+    return html.fromstring(html_content)
+
+
 class Tokenize:
     def __init__(self):
         self.lemmatizer = WordNetLemmatizer()
         self.p2_analytics = Analytics()
-        self.stopword = self._get_stopwords("stopwords.txt")
+        self.stopword = _get_stopwords("stopwords.txt")
         self.wf = WordFrequencies()
-
-    def _get_stopwords(self, file: str):
-        with open(file, 'r') as f:
-            return eval(f.read())
-
-    def get_wordnet_pos(self, word):
-        """Map POS tag to first character lemmatize() accepts"""
-        # https://www.machinelearningplus.com/nlp/lemmatization-examples-python/#wordnetlemmatizer
-        tag = pos_tag([word])[0][1][0].upper()
-        tag_dict = {"J": wordnet.ADJ,
-                    "N": wordnet.NOUN,
-                    "V": wordnet.VERB,
-                    "R": wordnet.ADV}
-        return tag_dict.get(tag, wordnet.NOUN)
 
     def tokenize(self, text: str) -> ['tokens']:
         """given a string, return a list of tokens"""
@@ -52,7 +62,7 @@ class Tokenize:
 
     def lemmatize(self, tokens: ['tokens']) -> ['tokens']:
         """lemmatize the given token, return list of lemmatized tokens"""
-        return [self.lemmatizer.lemmatize(w, self.get_wordnet_pos(w)) for w in tokens]
+        return [self.lemmatizer.lemmatize(w, get_wordnet_pos(w)) for w in tokens]
 
     def tokenize_and_lemmatize(self, text: str) -> ['lemmatized_tokens']:
         """convert a text string to a list of lemmatized token"""
@@ -62,15 +72,10 @@ class Tokenize:
         """parse html string, return text in html"""
         return self.p2_analytics._extract_text(content)
 
-    def get_html_object(self, html_content):
-        if isinstance(html_content, str):
-            html_content = bytes(html_content, encoding='utf8')
-        return html.fromstring(html_content)
-
     def get_lemmatized_token_frequencies(self, html_content: str or bytes) -> ({'token': int}, {'token': {'positions'}}):
         """given a html web page in str or bytes, return a dict of token frequencies"""
         try:
-            html_obj = self.get_html_object(html_content)
+            html_obj = get_html_object(html_content)
         except etree.ParserError:
             # web page cannot be parsed, treat as empty
             return dict(), dict()
@@ -87,7 +92,7 @@ class Tokenize:
     def get_bi_gram_frequencies(self, html_content: str or bytes) -> {'token': int}:
         """given a html web page in str or bytes, return a dict of token frequencies"""
         try:
-            html_obj = self.get_html_object(html_content)
+            html_obj = get_html_object(html_content)
         except etree.ParserError:
             # web page cannot be parsed, treat as empty
             return dict()

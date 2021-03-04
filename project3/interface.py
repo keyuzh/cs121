@@ -1,8 +1,24 @@
-from gui import *
+# interface.py
+# CS121 Winter 2021 Project 3
+# Group: 6
+# Name: Keyu Zhang, Chak Wah Lo, Emanuel Lopez
+# UCINetID: keyuz4, cwlo1, emanuel1
+
+"""user interface to the search engine, CLI and GUI available"""
+
+import getopt
+import pickle
+from pathlib import Path
+
+from PyQt5.QtWidgets import QApplication
+
 from cli import CLI
+from gui import *
+from search import Search
 
 DEFAULT_CORPUS_POSITION = "./WEBPAGES_RAW"
 DEFAULT_INDEX_DIRECTORY = "./data"
+
 
 def parse_arguments(args):
     """parse command line arguments"""
@@ -92,8 +108,7 @@ if __name__ == '__main__':
         cli = CLI(search, corpus)
         while True:
             print()
-            query = input("Enter Query ('q' to exit): ")
-            if query == 'q':
+            query = input("Enter Query (type ':q' to exit): ")
+            if query == ':q':
                 break
             cli.start_search(query)
-

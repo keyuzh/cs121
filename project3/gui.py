@@ -1,19 +1,20 @@
-import getopt
+# gui.py
+# CS121 Winter 2021 Project 3
+# Group: 6
+# Name: Keyu Zhang, Chak Wah Lo, Emanuel Lopez
+# UCINetID: keyuz4, cwlo1, emanuel1
+
+"""functions to render GUI"""
+
 import os
-import pickle
 import sys
 import time
 import webbrowser
-from pathlib import Path
 
 from PyQt5.QtGui import QPixmap
-from PyQt5.QtWidgets import QApplication, QMainWindow, QLineEdit, QPushButton, QLabel, QWidget, QVBoxLayout
+from PyQt5.QtWidgets import QMainWindow, QLineEdit, QPushButton, QLabel, QWidget, QVBoxLayout
 
-# https://pypi.org/project/PyQt5/
-# https://www.youtube.com/watch?v=Vde5SH8e1OQ&feature=emb_title
 from corpus import Corpus
-from search import Search
-
 
 
 class ResultWindow(QWidget):
@@ -33,6 +34,7 @@ class ResultWindow(QWidget):
         self.setBaseSize(500, 1000)
 
     def show(self) -> None:
+        """overload the parent method to add results to the window"""
         def wrapper(url):
             # need a function object to register
             return lambda: webbrowser.open(url)
@@ -42,6 +44,12 @@ class ResultWindow(QWidget):
                         f"Showing top {min(20, self.result_count)} results")
         self.layout.addWidget(results)
         self.layout.addSpacing(10)
+        # if not found
+        if self.result_count == 0:
+            empty_results = QLabel()
+            empty_results.setText("No Results found. Did you enter a stop word or make a typo?")
+            self.layout.addWidget(empty_results)
+            self.layout.addSpacing(10)
         # display results
         for path in self.result:
             link = QLabel()
@@ -55,6 +63,7 @@ class ResultWindow(QWidget):
             link.setOpenExternalLinks(True)
             self.layout.addWidget(button)
             self.layout.addWidget(link)
+        # call parent method
         super().show()
 
 
@@ -118,6 +127,6 @@ class MainWindow:
         sys.exit(self.app.exec_())
 
     def ready(self, search_engine):
+        """ready to render"""
         self.search = search_engine
         self.home_page()
-
