@@ -6,52 +6,63 @@
 
 # construct inverted index with key=token, value=where the token occur; TF-IDF, etc
 
-# Building the inverted index
-# • Now that you have been provided the HTML files to index. You may build your inverted
-# index off of them.
-# • As most of you may already know, the inverted index is simply a map with the token as a key
-# and a list of its corresponding postings.
-# • A posting is nothing but the representation of the token’s occurrence in a document.
-# • The posting would typically (not limited to) contain the following info (you are encouraged
-# to think of other attributes that you could add to the index) :
-# • The document name/id the token was found in.
-# • The word frequency.
-# • Indices of occurrence within the document
-# • Tf-idf score etc
-
 from collections import defaultdict
 import pickle
 import math
+from pathlib import Path
+
 
 class Index:
-    def __init__(self, bookkeeping_json, filename="inverted_index"):
-        self.filename = filename
+    def __init__(self, bookkeeping_json, bigram=False):
+        self.index_filename = "inverted_index"
+        self.tf_filename = "normalized_tf"
+        self.bigram = bigram
+        if bigram:
+            self.index_filename += "_bigram"
+            self.tf_filename += "_bigram"
         self.book = bookkeeping_json
         # inverted_index will be a dict of sets,
         # the keys will be the tokens, values will be a set of tuples, storing the url, file path, and tf-idf score
         # {
-        #     'token': list( [url, docID, frequency, tf-idf, pos] )
-        #     'irvine': list( [ics.uci.edu, 0/0, 15, .123, {'title'}], [uci.edu, 3/5, 13, .123, {'h1'}] )
+        #     'token': list( [docID, frequency, tf-idf, pos] )
+        #     'irvine': list( [0/0, 15, .123, {'title'}], [3/5, 13, .123, {'h1'}] )
         # }
         self.inverted_index = defaultdict(list)
 
+        # inverted_index will be a dict of sets,
+        # the keys will be the tokens, values will be a set of tuples, storing the url, file path, and tf-idf score
+        # {
+        #     'token': {docID: pos}
+        #     'irvine': dict (0/0: {'title'}, {3/5: {'h1'})
+        # }
+        self.tags = defaultdict(dict)
+
         # container to temporarily store the word frequencies in each web page
-        self.frequencies = dict()
         # {
         #   path : {'open': 11, 'source': 11, 'project': 11, 'slide': 1, '50': 1}
         # }
+        self.frequencies = dict()
 
         # stores what position that the given word appears
-        self.positions = dict()
         # {
         #   path : {'open': {'title', h1}, 'source': {'title', 'h2'} }
         # }
-        self.tfidf = dict()
+        self.positions = dict()
+
+        # stores the normalized tfidf score in each document
         # {
         #     path : {'word': normalized_tfidf}
         # }
+        self.tfidf = dict()
+
+    def insert(self, path, frequencies: dict, positions=dict()):
+        """insert the result of a document into temporary container"""
+        self.frequencies[path] = frequencies
+        if not self.bigram:
+            self.positions[path] = positions
 
     def normalize_tf(self):
+        """normalize tf score in each document"""
         for doc in self.frequencies.values():
             for word, freq in doc.items():
                 doc[word] = 1 + math.log(doc[word], 10)
@@ -59,36 +70,35 @@ class Index:
             for word, freq in doc.items():
                 doc[word] = doc[word] / tf_factor
 
-    def insert(self, path, frequencies: dict, positions=dict()):
-        """"""
-        self.frequencies[path] = frequencies
-        self.positions[path] = positions
-
     def calculate_tfidf(self):
+        """calculate tfidf for every word in the document"""
         total_documents = len(self.frequencies)  # N
         for token, occurrences in self.inverted_index.items():
             df = len(occurrences)
             for occ in occurrences:
-                tf = occ[2]
+                tf = occ[1]
                 tfidf = (1 + math.log(tf, 10)) * math.log(total_documents / df, 10)
-                occ[3] = tfidf
+                occ[2] = tfidf
 
     def write_file(self):
-        pickle.dump(self.inverted_index, open(self.filename, "wb"))
-        pickle.dump(self.frequencies, open("normalized_tf", "wb"))
+        """save the inverted index and normalized tf into a local file"""
+        data_dir = Path("./data")
+        index_path = data_dir / self.index_filename
+        tf_path = data_dir / self.tf_filename
+        pickle.dump(self.inverted_index, open(index_path, "wb"))
+        pickle.dump(self.frequencies, open(tf_path, "wb"))
+        if not self.bigram:
+            # save html tag info
+            tag_path = data_dir / "html_tag"
+            pickle.dump(self.positions, open(tag_path, 'wb'))
 
     def build(self):
-        # for k,v in self.frequencies.items():
-        #     for k,v in v.items():
-        #         # do something
+        """calculate normalized tfidf and save the file"""
         self.normalize_tf()
-        for path, freq in self.frequencies.items():
-            for token, fq in freq.items():
-                pos = set()
-                if token in self.positions[path].keys():
-                    pos = self.positions[path][token]
-                # print(pos)
-                self.inverted_index[token].append( [self.book[path], path, fq, 0, pos] )
+        for path, word_freqs in self.frequencies.items():
+            for token, fq in word_freqs.items():
+                # add to inverted index
+                self.inverted_index[token].append([path, fq, 0])
+        # calculate tfidf, then save
         self.calculate_tfidf()
-        # print(self.inverted_index)
         self.write_file()

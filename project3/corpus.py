@@ -1,5 +1,4 @@
 import json
-import sys
 from pathlib import Path
 
 import lxml.html
@@ -45,9 +44,8 @@ class Corpus:
         return self.bookkeeping[path]
 
     def get_title(self, path: str) -> str:
-        #https://stackoverflow.com/questions/51233/how-can-i-retrieve-the-page-title-of-a-webpage-using-python
-        t = lxml.html.parse(self.get_file(path))
-        try:
-            return lxml.html.parse(self.get_file(path)).find(".//title").text
-        except:
+        """returns the title of the given web page"""
+        title = lxml.html.parse(self.get_file(path)).find(".//title")
+        if title is None:
             return "(Description not found)"
+        return title.text.replace('\n', '')

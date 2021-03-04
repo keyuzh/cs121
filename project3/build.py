@@ -1,65 +1,54 @@
-from corpus import Corpus
-from lemmatization import Tokenize
-from index import Index
-
-import getopt, sys
 import atexit
+import getopt
+import sys
 
-DEBUG = False
+from corpus import Corpus
+from index import Index
+from lemmatization import Tokenize
 
-if __name__ == '__main__':
+DEFAULT_CORPUS_POSITION = "./WEBPAGES_RAW"
+
+
+def parse_arguments(args):
+    path = DEFAULT_CORPUS_POSITION
+    bi = False
     # https://www.geeksforgeeks.org/command-line-arguments-in-python/
-    # Remove 1st argument from the
-    # list of command line arguments
-    argumentList = sys.argv[1:]
+    # Remove 1st argument (current file) from the list of command line arguments
+    argument_list = args[1:]
     # Options
     options = "bc:"
     # Long options
     long_options = ["corpus =", "bigram"]
     try:
         # Parsing argument
-        arguments, values = getopt.getopt(argumentList, options, long_options)
-        print(arguments, values)
-        # checking each argument
-        for currentArgument, currentValue in arguments:
-            print(currentArgument, currentValue)
+        arguments, values = getopt.getopt(argument_list, options, long_options)
     except getopt.error as err:
         # output error, and return with an error code
         print(str(err))
+        raise
+    for arg, value in arguments:
+        if arg in {"-c", "--corpus"}:
+            path = value
+        elif arg in {"-b", "--bigram"}:
+            bi = True
+    return path, bi
 
 
-    corpus_path = sys.argv[1]
+if __name__ == '__main__':
+    # initialize objects
+    corpus_path, bi_gram = parse_arguments(sys.argv)
     corpus = Corpus(corpus_path)
     token = Tokenize()
-    index = Index(corpus.get_bookkeeping())
-    if not DEBUG:
-        atexit.register(index.build)
-    bi_gram = False
-
+    index = Index(corpus.get_bookkeeping(), bi_gram)
+    atexit.register(index.build)
 
     num_fetched = 0
-    if bi_gram:
-        print("building bi-grams")
-        index.filename = "inverted_index_bigram"
-        for html in corpus.feed_html():
+    for html in corpus.feed_html():
+        num_fetched += 1
+        print(f"Indexing #{num_fetched}: {html[1]}")
+        if bi_gram:
             fq = token.get_bi_gram_frequencies(html[0])
-            num_fetched += 1
-            print(num_fetched)
-            # print(fq)
             index.insert(html[2], fq)
-            if DEBUG and num_fetched > 10:
-                break
-    else:
-        for html in corpus.feed_html():
+        else:
             fq, pos = token.get_lemmatized_token_frequencies(html[0])
-            num_fetched += 1
-            print(num_fetched)
-            # print(fq)
             index.insert(html[2], fq, pos)
-            if DEBUG and num_fetched > 10:
-                break
-    #
-    if DEBUG:
-        index.build()
-
-

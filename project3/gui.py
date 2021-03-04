@@ -1,55 +1,67 @@
+import getopt
 import os
 import pickle
 import sys
+import time
 import webbrowser
+from pathlib import Path
 
-from PyQt5 import QtWidgets
-from PyQt5.QtWidgets import QApplication, QMainWindow,QLineEdit,QPushButton,QLabel, QWidget, QVBoxLayout
 from PyQt5.QtGui import QPixmap
-#https://pypi.org/project/PyQt5/
-#https://www.youtube.com/watch?v=Vde5SH8e1OQ&feature=emb_title
+from PyQt5.QtWidgets import QApplication, QMainWindow, QLineEdit, QPushButton, QLabel, QWidget, QVBoxLayout
+
+# https://pypi.org/project/PyQt5/
+# https://www.youtube.com/watch?v=Vde5SH8e1OQ&feature=emb_title
 from corpus import Corpus
-from project3.search import Search
+from search import Search
+
+DEFAULT_CORPUS_POSITION = "./WEBPAGES_RAW"
+DEFAULT_INDEX_DIRECTORY = "./data"
 
 
 class ResultWindow(QWidget):
     # https://www.learnpyqt.com/tutorials/creating-multiple-windows/
-    """
-    This "window" is a QWidget. If it has no parent,
-    it will appear as a free-floating window.
-    """
-
-    def __init__(self, query, result, corpus_path):
+    """Window for showing the results"""
+    def __init__(self, corpus_path, query, result, result_count, runtime):
         super().__init__()
-        self.layout = QVBoxLayout()
-        self.setWindowTitle(f"Results for {query}")
-        self.setLayout(self.layout)
         self.result = result
+        self.query = query
+        self.result_count = result_count
+        self.runtime = runtime
         self.path = os.path.abspath(corpus_path)
         self.corpus = Corpus(corpus_path)
+        self.layout = QVBoxLayout()
+        self.setLayout(self.layout)
+        self.setWindowTitle(f"{query} - CS121 Search")
+        self.setBaseSize(500, 1000)
 
     def show(self) -> None:
         def wrapper(url):
-            def open_in_webbrowser():
-                webbrowser.open(url)
-            return open_in_webbrowser
-
+            # need a function object to register
+            return lambda: webbrowser.open(url)
+        # first line: show basic info about the search
+        results = QLabel()
+        results.setText(f"{self.query}: {self.result_count} results ({self.runtime:.4f} seconds)\n" +
+                        f"Showing top {min(20, self.result_count)} results")
+        self.layout.addWidget(results)
+        self.layout.addSpacing(10)
+        # display results
         for path in self.result:
-            test = QLabel()
+            link = QLabel()
             local_link = os.path.join(self.path, path)
-            print(local_link)
+            # button to local file
             button = QPushButton(self.corpus.get_title(path), self)
             button.clicked.connect(wrapper(local_link))
+            # link to internet site
             url = self.corpus.get_url(path)
-            test.setText(f"<a href=\"http://{url}\">{url}</a>")
-            test.setOpenExternalLinks(True)
+            link.setText(f"<a href=\"http://{url}\">{url[:100]}</a>")
+            link.setOpenExternalLinks(True)
             self.layout.addWidget(button)
-            self.layout.addWidget(test)
-            self.layout.addSpacing(10)
-
+            self.layout.addWidget(link)
         super().show()
 
+
 class LoadingWindow(QWidget):
+    """window to show when loading the index"""
     def __init__(self, message: str):
         super().__init__()
         self.layout = QVBoxLayout()
@@ -57,9 +69,13 @@ class LoadingWindow(QWidget):
         self.setFixedSize(500, 1)
         self.show()
 
+
 class MainWindow:
-    def __init__(self, qapp):
+    """main search window"""
+    def __init__(self, qapp, corpus):
+        # initialize variables
         self.app = qapp
+        self.corpus_path = corpus
         self.search = None
         self.window = None
         self.logo = None
@@ -68,38 +84,38 @@ class MainWindow:
         self.result_window = None
 
     def search_button_clicked(self):
+        """get the query from text box and perform a search"""
         query = self.textbox.text()
-        #return a list of urls
-        urls = self.search.search_url(query, 20)
-        # for doc, score in urls:
-        #     print(self.corpus.get_url(doc), score)
-        #     print("Title:", self.corpus.get_title(doc), sep=' ')
-        self.result_window = ResultWindow(query, [i[0] for i in urls], sys.argv[1])
+        # time the search
+        start = time.time()
+        num_results, urls = self.search.search(query, 20)
+        search_time = time.time() - start
+        # render the result window
+        self.result_window = ResultWindow(self.corpus_path, query, [i[0] for i in urls], num_results, search_time)
         self.result_window.show()
 
     def home_page(self):
-        #Initialize the window
+        # Initialize the window
         self.window = QMainWindow()
-        self.window.setGeometry(200,200,1000,1000)
+        self.window.setGeometry(200, 200, 1000, 1000)
         self.window.setWindowTitle("CS 121 Search Engine")
         self.window.setStyleSheet("background-color: white;")
         self.window.setFixedSize(1000, 1000)
-        #Setup the Logo
+        # Setup the Logo
         load_logo = QPixmap('guiLogo.png')
         self.logo = QLabel(self.window)
         self.logo.setPixmap(load_logo)
-        self.logo.resize(load_logo.width(),load_logo.height())
-        self.logo.move(200,200)
-        #For textbox input
+        self.logo.resize(load_logo.width(), load_logo.height())
+        self.logo.move(200, 200)
+        # For textbox input
         self.textbox = QLineEdit(self.window)
-        self.textbox.move(250,500)
-        self.textbox.resize(500,40)
-        #Create Search button
-        self.button = QPushButton("Search",self.window)
+        self.textbox.move(250, 500)
+        self.textbox.resize(500, 40)
+        # Create Search button
+        self.button = QPushButton("Search", self.window)
         self.button.clicked.connect(self.search_button_clicked)
-        self.button.move(450,550)
-        # self.button.setEnabled(False)
-        #Display window
+        self.button.move(450, 550)
+        # Display window
         self.window.show()
         sys.exit(self.app.exec_())
 
@@ -108,12 +124,62 @@ class MainWindow:
         self.home_page()
 
 
-if __name__ == '__main__':
-    main_window = MainWindow(QApplication(sys.argv))
-    loading_window = LoadingWindow("Loading inverted index")
-    inverted_index = pickle.load(open("data/inverted_index","rb"))
-    normalized_tf = pickle.load(open("data/normalized_tf","rb"))
-    loading_window.close()
+def parse_arguments(args):
+    """parse command line arguments"""
+    corpus = DEFAULT_CORPUS_POSITION
+    index = DEFAULT_INDEX_DIRECTORY
+    bigram = False
+    # https://www.geeksforgeeks.org/command-line-arguments-in-python/
+    # Remove 1st argument (current file) from the list of command line arguments
+    argument_list = args[1:]
+    # Options
+    options = "c:i:b"
+    # Long options
+    long_options = ["corpus =", "index =", "bigram"]
+    try:
+        # Parsing argument
+        arguments, values = getopt.getopt(argument_list, options, long_options)
+    except getopt.error as err:
+        # output error, and return with an error code
+        print(str(err))
+        raise
+    for arg, value in arguments:
+        if arg in {"-c", "--corpus"}:
+            corpus = value
+        elif arg in {"-i", "--index"}:
+            index = value
+        elif arg in {"-b", "--bigram"}:
+            bigram = True
+    return corpus, index, bigram
 
-    search = Search(inverted_index, normalized_tf, sys.argv[1])
+
+def load(index: str or Path, bigram: bool) -> Search:
+    """load index files and create the search object"""
+    index = Path(index)
+    load = LoadingWindow("Loading Inverted Index")
+    inverted_index = pickle.load(open(index / "inverted_index", "rb"))
+    load.close()
+    load = LoadingWindow("Loading TFIDF Scores")
+    normalized_tf = pickle.load(open(index / "normalized_tf", "rb"))
+    load.close()
+    if bigram:
+        load = LoadingWindow("Loading Bigram Inverted Index")
+        inverted_index_bi = pickle.load(open(index / "inverted_index_bigram", "rb"))
+        load.close()
+        load = LoadingWindow("Loading Bigram TFIDF Scores")
+        normalized_tf_bi = pickle.load(open(index / "normalized_tf_bigram", "rb"))
+        load.close()
+    else:
+        inverted_index_bi = None
+        normalized_tf_bi = None
+    load = LoadingWindow("Loading HTML Tag Information")
+    html_tag = pickle.load(open(index / "html_tag", 'rb'))
+    load.close()
+    return Search(corpus, inverted_index, normalized_tf, html_tag, inverted_index_bi, normalized_tf_bi)
+
+
+if __name__ == '__main__':
+    corpus, index, bigram = parse_arguments(sys.argv)
+    main_window = MainWindow(QApplication(sys.argv), corpus)
+    search = load(index, bigram)
     main_window.ready(search)
