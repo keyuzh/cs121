@@ -21,65 +21,19 @@ import itertools
 from collections import defaultdict
 from pathlib import Path
 
-from PyQt5 import QtWidgets
-from PyQt5.QtWidgets import QApplication, QMainWindow,QLineEdit,QPushButton,QLabel, QWidget, QVBoxLayout
-from PyQt5.QtGui import QPixmap
-#https://pypi.org/project/PyQt5/
-#https://www.youtube.com/watch?v=Vde5SH8e1OQ&feature=emb_title
 from corpus import Corpus
 
 
-class ResultWindow(QWidget):
-    # https://www.learnpyqt.com/tutorials/creating-multiple-windows/
-    """
-    This "window" is a QWidget. If it has no parent,
-    it will appear as a free-floating window.
-    """
-
-    def __init__(self, query, result, corpus_path):
-        super().__init__()
-        self.layout = QVBoxLayout()
-        self.setWindowTitle(f"Results for {query}")
-        self.setLayout(self.layout)
-        self.result = result
-        self.path = os.path.abspath(corpus_path)
+class Search():
+    def __init__(self, index: dict, normalized_tf: dict, corpus_path: str or Path):
         self.corpus = Corpus(corpus_path)
-
-    def show(self) -> None:
-        def wrapper(url):
-            def open_in_webbrowser():
-                webbrowser.open(url)
-            return open_in_webbrowser
-
-        for path in self.result:
-            test = QLabel()
-            local_link = os.path.join(self.path, path)
-            print(local_link)
-            button = QPushButton(self.corpus.get_title(path), self)
-            button.clicked.connect(wrapper(local_link))
-            url = self.corpus.get_url(path)
-            test.setText(f"<a href=\"http://{url}\">{url}</a>")
-            test.setOpenExternalLinks(True)
-            self.layout.addWidget(button)
-            self.layout.addWidget(test)
-            self.layout.addSpacing(10)
-
-        super().show()
-
-class Search:
-    def __init__(self, index:dict, normalized_tf:dict, se):
-        self.corpus = Corpus("./WEBPAGES_RAW")
         self.index = index
         self.normalized_tf = normalized_tf
-        self.SearchEngine = se
-        self.window = None
-        self.logo = None
-        self.textbox = None
-        self.button = None
-        self.result_window = None
+        # self.SearchEngine = se
 
-    #search return at most K urls where K = 20 in this case
-    def search_url(self, keyword,K):
+
+    # search return at most K urls where K = 20 in this case
+    def search_url(self, keyword, K):
         '''out_list = []
         if keyword in self.index.keys():
             for l in self.index[keyword]:
@@ -87,20 +41,21 @@ class Search:
 
         out_list.sort(key=(lambda x: -x[1]))
         return out_list'''
-        word_frequency = self.word_fq(keyword) # Get frequency of each word
+        word_frequency = self.word_fq(keyword)  # Get frequency of each word
         print("After tokenize query:")
-        for word,fq in word_frequency.items():
-            print (word,fq)
-        word_frequency = self.normalize_tfidf(word_frequency) # get normalized value of each word
+        for word, fq in word_frequency.items():
+            print(word, fq)
+        word_frequency = self.normalize_tfidf(word_frequency)  # get normalized value of each word
         print("After norm query;")
-        for word,fq in word_frequency.items():
-            print (word,fq)        
-        doc_score = self.calculate_cosine_similarity(word_frequency) # return dict of doc with their score as value
+        for word, fq in word_frequency.items():
+            print(word, fq)
+        doc_score = self.calculate_cosine_similarity(word_frequency)  # return dict of doc with their score as value
         print("After cosine similarity: ")
         for doc, score in doc_score.items():
-            print (doc,score)
-        return sorted(doc_score.items(),key=lambda x:-x[1])[:K]
+            print(doc, score)
+        return sorted(doc_score.items(), key=lambda x: -x[1])[:K]
         # return dict(itertools.islice(doc_score.items(),K))
+
 
     def multi_query(self, multi_word, K):
         url_lst = []
@@ -110,31 +65,31 @@ class Search:
                 url_lst.append(doc_and_score)
         return sorted(url_lst, key=lambda x: -x[1])[:K]
 
+
     # Return a dict() with
     # token = DocID, value = score
-    def calculate_cosine_similarity(self,word_frequency):
+    def calculate_cosine_similarity(self, word_frequency):
         doc_score = defaultdict(int)
-        for qword,qnorm in word_frequency.items():
+        for qword, qnorm in word_frequency.items():
             for did, doc in self.normalized_tf.items():
-                if qword in doc.keys(): # word in the document
+                if qword in doc.keys():  # word in the document
                     doc_score[did] += qnorm * doc[qword]
         return doc_score
 
-        
 
-    #Calculate tfidf and normalize
+    # Calculate tfidf and normalize
     def normalize_tfidf(self, word_frequency):
-        #Courpus Count
+        # Courpus Count
         total_documents = len(self.normalized_tf)
         query_length = 0
         for word, freq in word_frequency.items():
             # print(self.index.keys())
-            #if word in index -> calculate tfidf
+            # if word in index -> calculate tfidf
             if word in self.index.keys():
                 print("In index")
                 df = len(self.index[word])
-                word_frequency[word] = 1+math.log(freq,10) * math.log(total_documents/df,10)
-                query_length += word_frequency[word]**2
+                word_frequency[word] = 1 + math.log(freq, 10) * math.log(total_documents / df, 10)
+                query_length += word_frequency[word] ** 2
             # else tfidf = 0
             else:
                 print("Not in Index")
@@ -144,9 +99,10 @@ class Search:
             if freq != 0:
                 word_frequency[word] = freq / query_length
         return word_frequency
-        
-    #find word frequency in query
-    def word_fq (self, word):
+
+
+    # find word frequency in query
+    def word_fq(self, word):
         query_token = word.split()
         query_dict = dict()
         for w in query_token:
@@ -156,77 +112,12 @@ class Search:
                 query_dict[w] += 1
         return query_dict
 
-    def search_length(self,keyword):
+
+    def search_length(self, keyword):
         if keyword in self.index.keys():
             return len(self.index[keyword])
 
-    def search_button_clicked(self, textbox):
-        query = self.textbox.text()
-        print("Seaching...")
-        print(query)
-        #return a list of urls
-        urls = self.search_url(query,20)
-        print("Finished.\nResult:")
-        for doc, score in urls:
-            print(self.corpus.get_url(doc), score)
-            print("Title:", self.corpus.get_title(doc), sep=' ')
-        self.result_window = ResultWindow(query, [i[0] for i in urls], "./WEBPAGES_RAW")
-        self.result_window.show()
-        """
-        window = QMainWindow()
-        window.setGeometry(200,200,1000,1000)
-        window.setWindowTitle("CS 121 Search Engine")
-        window.setStyleSheet("background-color: white;")
-        window.setFixedSize(1000, 1000)
-        """
-        pass
 
-    def home_page(self):
-        #Initialize the window
-        self.window = QMainWindow()
-        self.window.setGeometry(200,200,1000,1000)
-        self.window.setWindowTitle("CS 121 Search Engine")
-        self.window.setStyleSheet("background-color: white;")
-        self.window.setFixedSize(1000, 1000)
-        #Setup the Logo
-        load_logo = QPixmap('guiLogo.png')
-        self.logo = QLabel(self.window)
-        self.logo.setPixmap(load_logo)
-        self.logo.resize(load_logo.width(),load_logo.height())
-        self.logo.move(200,200)
-        #For textbox input
-        self.textbox = QLineEdit(self.window)
-        self.textbox.move(250,500)
-        self.textbox.resize(500,40)
-        #Create Search button
-        self.button = QPushButton("Search",self.window)
-        self.button.clicked.connect(self.search_button_clicked)
-        self.button.move(450,550)
-        #Display window
-        self.window.show()
-        sys.exit(self.SearchEngine.exec_())
-
-
-if __name__ == '__main__':
-    """
-    inverted_index = pickle.load(open("inverted_index","rb"))
-    search = Search(inverted_index)
-    while True:
-        keyword = input("Keyword:")
-        if(keyword == "quit"):
-            break
-        urls = search.search_url(keyword)
-        length = search.search_length(keyword)
-        print("Length:", length)
-        print("Url:")
-        for url in urls[:20]:
-            print(url[0])
-    """
-    se = QApplication(sys.argv)
-    inverted_index = pickle.load(open("inverted_index","rb"))
-    normalized_tf = pickle.load(open("normalized_tf","rb"))
-    search = Search(inverted_index,normalized_tf, se)
-    search.home_page()
 
 
 

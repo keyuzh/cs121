@@ -48,4 +48,4 @@ class Corpus:
         try:
             return t.find(".//title").text
         except:
-            return ""
+            return "(Description not found)"
