@@ -51,6 +51,7 @@ class Corpus:
     def get_title(self, path: str) -> str:
         """returns the title of the given web page"""
         title = lxml.html.parse(self.get_file(path)).find(".//title")
-        if title is None:
+        try:
+            return title.text.replace('\n', '')
+        except:
             return "(Description not found)"
-        return title.text.replace('\n', '')

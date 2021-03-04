@@ -32,7 +32,7 @@ def parse_arguments(args):
     # Options
     options = "c:i:bg"
     # Long options
-    long_options = ["corpus =", "index =", "bigram", "gui"]
+    long_options = ["corpus=", "index=", "bigram", "gui"]
     try:
         # Parsing argument
         arguments, values = getopt.getopt(argument_list, options, long_options)
@@ -111,4 +111,4 @@ if __name__ == '__main__':
             query = input("Enter Query (type ':q' to exit): ")
             if query == ':q':
                 break
-            cli.start_search(query)
+            cli.start_search(query.lower())

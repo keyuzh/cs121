@@ -92,7 +92,7 @@ class MainWindow:
 
     def search_button_clicked(self):
         """get the query from text box and perform a search"""
-        query = self.textbox.text()
+        query = self.textbox.text().lower()
         # time the search
         start = time.time()
         num_results, urls = self.search.search(query, 20)

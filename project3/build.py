@@ -45,7 +45,8 @@ def parse_arguments(args) -> (str, bool):
 if __name__ == '__main__':
     # initialize objects
     corpus_path, bi_gram = parse_arguments(sys.argv)
-    print(corpus_path)
+    print(f"Using Corpus at '{corpus_path}'")
+    print(f"Bi-gram: {bi_gram}")
     corpus = Corpus(corpus_path)
     token = Tokenize()
     index = Index(corpus.get_bookkeeping(), bi_gram)
